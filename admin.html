@@ -2,169 +2,173 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>METU NCC Cyber | Design Station</title>
+    <title>METU NCC Cyber | Master Design Station</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
+        :root { --cyber-green: #10b981; }
         body { background: #000; color: #fff; font-family: 'Inter', sans-serif; background-image: radial-gradient(#1f2937 0.8px, transparent 0.8px); background-size: 30px 30px; }
-        .sidebar-panel { background: rgba(13, 17, 23, 0.95); border-right: 1px solid #30363d; }
-        .control-group { border-bottom: 1px solid #30363d; padding: 15px 0; }
+        .sidebar { background: rgba(13, 17, 23, 0.98); border-right: 1px solid #30363d; height: 100vh; overflow-y: auto; }
         .cyber-input { background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 4px; font-size: 12px; width: 100%; padding: 8px; }
-        canvas { border: 1px solid #10b981; box-shadow: 0 0 40px rgba(0,0,0,1); }
+        .cyber-input:focus { border-color: var(--cyber-green); outline: none; }
+        .layer-btn { background: #1f2937; color: #9ca3af; font-size: 10px; font-weight: bold; padding: 8px; border-radius: 4px; width: 100%; text-align: left; transition: 0.2s; border: 1px solid transparent; }
+        .layer-btn:hover { border-color: var(--cyber-green); color: #fff; }
     </style>
 </head>
-<body class="flex min-h-screen overflow-hidden">
+<body class="flex overflow-hidden">
 
-    <div class="w-80 sidebar-panel p-6 flex flex-col h-screen overflow-y-auto">
-        <div class="mb-8 border-b border-gray-800 pb-4">
-            <h1 class="text-emerald-500 font-black text-sm tracking-widest uppercase">Design Station v3.0</h1>
-            <p class="text-[10px] opacity-50 font-mono mt-1">OPERATOR: <span class="text-white">ADMIN DEMO</span></p>
+    <div class="w-80 sidebar p-6 flex flex-col">
+        <div class="mb-6 border-b border-gray-800 pb-4">
+            <h1 class="text-emerald-500 font-black text-sm tracking-widest uppercase">Master Station v3.5</h1>
+            <p class="text-[10px] opacity-50 font-mono mt-1">NODE: <span class="text-white">ADMIN DEMO</span></p>
         </div>
 
-        <div class="control-group">
-            <label class="text-[10px] font-bold text-gray-500 uppercase mb-2 block">1. Arkaplan Şablonu</label>
-            <input type="file" id="bgLoader" class="text-[10px] text-gray-400 cursor-pointer">
-        </div>
+        <div class="space-y-6">
+            <div>
+                <label class="text-[10px] font-bold text-gray-500 uppercase mb-2 block">1. Arkaplan (PNG)</label>
+                <input type="file" id="bgLoader" class="text-[10px] text-gray-400">
+            </div>
 
-        <div class="control-group space-y-2">
-            <label class="text-[10px] font-bold text-gray-500 uppercase mb-2 block">2. Katman Ekle</label>
-            <button onclick="addText('KATILIMCI ADI', 60, true)" class="w-full bg-gray-800 hover:bg-gray-700 text-[10px] py-2 rounded font-bold transition">+ İSİM KATMANI</button>
-            <button onclick="addText('Etkinlik Başlığı', 30, false)" class="w-full bg-gray-800 hover:bg-gray-700 text-[10px] py-2 rounded font-bold transition">+ ETKİNLİK KATMANI</button>
-            <button onclick="addQR()" class="w-full bg-emerald-900/30 text-emerald-500 border border-emerald-900 text-[10px] py-2 rounded font-bold transition">+ QR KOD MÜHÜRÜ</button>
-        </div>
+            <div class="space-y-2">
+                <label class="text-[10px] font-bold text-gray-500 uppercase mb-2 block">2. Akıllı Katman Ekle</label>
+                <button onclick="addSmartText('KATILIMCI ADI', 80, '800')" class="layer-btn">+ İSİM (ANA)</button>
+                <button onclick="addSmartText('Etkinlik Başlığı', 40, '400')" class="layer-btn">+ ETKİNLİK</button>
+                <button onclick="addSmartText('31 Mart 2026', 30, '400')" class="layer-btn">+ TARİH</button>
+                <button onclick="addSignLayer()" class="layer-btn">+ İMZA ÇİZGİSİ & İSİM</button>
+            </div>
 
-        <div class="control-group" id="editorControls">
-            <label class="text-[10px] font-bold text-gray-500 uppercase mb-4 block">3. Canlı Stil Editörü</label>
-            <div class="space-y-3">
-                <input type="color" id="fontColor" class="h-8 p-0 border-0 bg-transparent cursor-pointer" onchange="updateStyle()">
+            <div class="pt-4 border-t border-gray-800" id="styleEditor">
+                <label class="text-[10px] font-bold text-gray-500 uppercase mb-3 block">3. Stil & Renk Ayarı</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="color" id="fColor" class="w-full h-8 bg-transparent border-0 cursor-pointer" oninput="apply()">
+                    <input type="number" id="fSize" class="cyber-input" placeholder="Size" oninput="apply()">
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-gray-800">
+                <label class="text-[10px] font-bold text-gray-500 uppercase mb-2 block">4. Sistem Mühürü</label>
                 <div class="flex gap-2">
-                    <input type="number" id="fontSize" placeholder="Boyut" class="cyber-input" oninput="updateStyle()">
-                    <select id="fontWeight" class="cyber-input" onchange="updateStyle()">
-                        <option value="400">Normal</option>
-                        <option value="700">Bold</option>
-                        <option value="900">Black</option>
-                    </select>
+                    <input type="text" id="idPrefix" value="MNCS" class="cyber-input" placeholder="Prefix">
+                    <button onclick="sealAndQR()" class="bg-emerald-900/40 text-emerald-500 border border-emerald-900/50 text-[10px] py-2 px-4 rounded font-bold hover:bg-emerald-600 hover:text-black transition">+ ID & QR</button>
                 </div>
             </div>
         </div>
 
         <div class="mt-auto pt-6 border-t border-gray-800">
-            <button onclick="exportPNG()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-black font-black py-4 rounded-lg tracking-widest text-[11px] uppercase shadow-lg shadow-emerald-900/20">
-                SERTİFİKAYI MÜHÜRLE & İNDİR
+            <button onclick="exportPNG()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-black font-black py-4 rounded-lg tracking-widest text-[11px] uppercase transition-all shadow-lg shadow-emerald-900/20">
+                Sertifikayı İndir / Download
             </button>
         </div>
     </div>
 
-    <div class="flex-1 flex flex-col items-center justify-center bg-black p-8 overflow-hidden">
-        <div class="mb-4 flex justify-between w-full max-w-[1000px] items-center">
-            <div class="text-[10px] font-mono text-gray-500 uppercase">MNCS // LIVE_EDITOR // SECURE_LINE</div>
-            <div class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">Sürükle-Bırak Aktif</div>
-        </div>
+    <div class="flex-1 flex flex-col items-center justify-center bg-black p-10 overflow-hidden relative">
+        <div class="absolute top-8 left-8 text-[10px] font-mono text-gray-700 uppercase tracking-widest">MNCS // MASTER_BUILD_3.5 // SECURE_LINE</div>
         <div id="canvas-container" class="shadow-2xl">
             <canvas id="fCanvas"></canvas>
+        </div>
+        <div class="mt-8 text-gray-700 text-[10px] font-mono uppercase tracking-[0.3em]">
+            Canlı Mühür Önizleme Modu - <span class="text-emerald-500">Hazır</span>
         </div>
     </div>
 
     <script>
-        // Editör Kurulumu
         const fCanvas = new fabric.Canvas('fCanvas', {
             width: 1600,
             height: 900,
-            backgroundColor: '#161b22'
+            backgroundColor: '#161b22',
+            preserveObjectStacking: true
         });
 
         // 1. Arkaplan Yükleme
-        document.getElementById('bgLoader').onchange = function(e) {
+        document.getElementById('bgLoader').onchange = (e) => {
             const reader = new FileReader();
-            reader.onload = function(f) {
-                fabric.Image.fromURL(f.target.result, function(img) {
+            reader.onload = (f) => {
+                fabric.Image.fromURL(f.target.result, (img) => {
                     fCanvas.setBackgroundImage(img, fCanvas.renderAll.bind(fCanvas), {
-                        scaleX: fCanvas.width / img.width,
-                        scaleY: fCanvas.height / img.height
+                        scaleX: 1600 / img.width,
+                        scaleY: 900 / img.height
                     });
                 });
             };
             reader.readAsDataURL(e.target.files[0]);
         };
 
-        // 2. Metin Ekleme (Sürüklenebilir)
-        function addText(str, size, isBold) {
+        // 2. Akıllı Metin Ekleme
+        function addSmartText(str, size, weight) {
             const text = new fabric.IText(str, {
-                left: 800,
-                top: 450,
-                fontFamily: 'Inter',
-                fontSize: size,
-                fill: '#ffffff',
-                fontWeight: isBold ? '800' : '400',
-                originX: 'center',
-                originY: 'center',
-                textAlign: 'center'
+                left: 800, top: 450, fontFamily: 'Inter', fontSize: size,
+                fill: '#ffffff', fontWeight: weight, originX: 'center',
+                originY: 'center', textAlign: 'center', cursorDelay: 100
             });
             fCanvas.add(text);
             fCanvas.setActiveObject(text);
         }
 
-        // 3. QR Kod Mühürü (Sürüklenebilir)
-        function addQR() {
-            const certID = "MNCS-" + Math.floor(Math.random()*90000);
-            const qrUrl = window.location.origin + "/index.html?id=" + certID;
+        // 3. İmza Katmanı (Grup Olarak)
+        function addSignLayer() {
+            const line = new fabric.Rect({ width: 200, height: 1.5, fill: '#ffffff', left: 400, top: 750, originX: 'center' });
+            const name = new fabric.IText('İmzalayan / Signer', { left: 400, top: 780, fontSize: 24, fill: '#ffffff', originX: 'center', fontFamily: 'Inter' });
+            const group = new fabric.Group([line, name], { left: 800, top: 800 });
+            fCanvas.add(group);
+            fCanvas.setActiveObject(group);
+        }
+
+        // 4. Mühürle (ID & QR)
+        function sealAndQR() {
+            const id = document.getElementById('idPrefix').value + "-" + Math.floor(Math.random()*90000);
+            const qrUrl = window.location.origin + "/index.html?id=" + id;
             
             const tempCanvas = document.createElement('canvas');
-            QRCode.toCanvas(tempCanvas, qrUrl, { width: 150, margin: 1, color: { dark: '#ffffff', light: '#00000000' } }, () => {
-                fabric.Image.fromURL(tempCanvas.toDataURL(), function(img) {
-                    img.set({ left: 1400, top: 750, originX: 'center', originY: 'center' });
-                    fCanvas.add(img);
-                    fCanvas.setActiveObject(img);
+            QRCode.toCanvas(tempCanvas, qrUrl, { width: 140, margin: 2, color: { dark: '#ffffff', light: '#00000000' } }, () => {
+                fabric.Image.fromURL(tempCanvas.toDataURL(), (img) => {
+                    img.set({ left: 1420, top: 720, originX: 'center', originY: 'center' });
+                    const idText = new fabric.IText("ID: " + id, { left: 1560, top: 870, fontSize: 14, fill: '#ffffff', opacity: 0.3, fontFamily: 'JetBrains Mono', originX: 'right' });
+                    const group = new fabric.Group([img, idText], { left: 1420, top: 720 });
+                    fCanvas.add(group);
+                    fCanvas.setActiveObject(group);
+                    alert("Sertifika Mühürlendi! ID: " + id);
                 });
             });
         }
 
-        // 4. Stil Güncelleme (Canlı)
-        function updateStyle() {
-            const activeObj = fCanvas.getActiveObject();
-            if (activeObj && activeObj.type === 'i-text') {
-                activeObj.set({
-                    fill: document.getElementById('fontColor').value,
-                    fontSize: parseInt(document.getElementById('fontSize').value) || activeObj.fontSize,
-                    fontWeight: document.getElementById('fontWeight').value
-                });
+        // 5. Stil Uygulama
+        function apply() {
+            const obj = fCanvas.getActiveObject();
+            if (obj && obj.type === 'i-text') {
+                obj.set({ fill: document.getElementById('fColor').value, fontSize: parseInt(document.getElementById('fSize').value) || obj.fontSize });
                 fCanvas.renderAll();
             }
         }
 
         // Seçilen nesneye göre paneli güncelle
-        fCanvas.on('selection:created', (e) => updateControlPanel(e.selected[0]));
-        fCanvas.on('selection:updated', (e) => updateControlPanel(e.selected[0]));
-
-        function updateControlPanel(obj) {
+        fCanvas.on('selection:created', (e) => updateUI(e.selected[0]));
+        fCanvas.on('selection:updated', (e) => updateUI(e.selected[0]));
+        function updateUI(obj) {
             if (obj && obj.type === 'i-text') {
-                document.getElementById('fontColor').value = obj.fill;
-                document.getElementById('fontSize').value = obj.fontSize;
-                document.getElementById('fontWeight').value = obj.fontWeight;
+                document.getElementById('fColor').value = obj.fill;
+                document.getElementById('fSize').value = obj.fontSize;
             }
         }
 
-        // 5. Kaydetme
+        // PNG Kaydetme
         function exportPNG() {
-            const dataURL = fCanvas.toDataURL({ format: 'png', quality: 1 });
+            const dataURL = fCanvas.toDataURL({ format: 'png', quality: 1, multiplier: 1 });
             const link = document.createElement('a');
-            link.download = 'MNCS-Official-Certificate.png';
+            link.download = `MNCS_Official_Cert_${Date.now()}.png`;
             link.href = dataURL;
             link.click();
         }
 
-        // Canvas Boyutunu Responsive Yap
-        function resizeCanvas() {
-            const container = document.getElementById('canvas-container');
-            const scale = container.clientWidth / 1600;
+        // Zoom & Resize
+        function resize() {
+            const scale = document.getElementById('canvas-container').clientWidth / 1600;
             fCanvas.setZoom(scale);
-            fCanvas.setWidth(1600 * scale);
-            fCanvas.setHeight(900 * scale);
+            fCanvas.setWidth(1600 * scale); fCanvas.setHeight(900 * scale);
         }
-        window.addEventListener('resize', resizeCanvas);
-        setTimeout(resizeCanvas, 500);
+        window.addEventListener('resize', resize);
+        setTimeout(resize, 500);
     </script>
 </body>
 </html>
