@@ -3,47 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>METU NCC Cyber | Certificate Verification</title>
-    <link rel="stylesheet" href="style.css">
+    <title>METU NCC Cybersecurity Society | Verification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background: #000; color: #e6edf3; font-family: 'Inter', sans-serif;
+            background-image: radial-gradient(#1f2937 0.8px, transparent 0.8px);
+            background-size: 30px 30px; /* Sitedeki ızgara yapısı */
+        }
+        .cyber-card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; }
+        .cyber-input { background: #0d1117; border: 1px solid #30363d; color: white; }
+        .cyber-input:focus { border-color: #10b981; outline: none; box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
+    </style>
 </head>
-<body>
-    <div class="card">
-        <div class="logo-area">
-            <h2>METU NCC CYBER</h2>
-        </div>
-        <h1>Sertifika Doğrulama Sistemi</h1>
-        <p>Sertifika üzerindeki ID'yi girerek geçerliliğini kontrol edebilirsiniz.</p>
+<body class="min-h-screen flex flex-col items-center justify-center p-6">
+    <div class="w-full max-w-2xl text-center">
+        <h1 class="text-4xl font-extrabold mb-2 tracking-tighter uppercase">Sertifika Doğrulama</h1>
+        <p class="text-gray-500 mb-8 font-medium">METU NCC Cybersecurity Society Etkinlik Kayıtları</p>
         
-        <div class="input-group">
-            <input type="text" id="certIdInput" placeholder="Örn: MC-12345">
-            <button onclick="verify()">Sertifikayı Sorgula</button>
+        <div class="cyber-card p-8 shadow-2xl">
+            <div class="flex flex-col gap-4">
+                <input type="text" id="certID" placeholder="Sertifika ID'sini Girin (Örn: MNCS-12345)" class="cyber-input p-4 rounded-lg text-center font-mono">
+                <button onclick="verify()" class="bg-[#10b981] hover:bg-[#0da371] text-black font-black py-4 rounded-lg transition-all tracking-widest uppercase">Doğrula</button>
+            </div>
+            
+            <div id="result" class="hidden mt-8 pt-8 border-t border-gray-800 animate-pulse">
+                <h2 class="text-[#10b981] font-bold text-xl uppercase mb-2">✓ Sertifika Geçerli</h2>
+                <div class="text-left space-y-2 text-sm text-gray-400 font-mono">
+                    <p id="resName"></p>
+                    <p id="resEvent"></p>
+                    <p id="resID"></p>
+                </div>
+                <button id="liBtn" class="mt-6 w-full bg-[#0a66c2] text-white py-3 rounded-lg font-bold">LinkedIn'e Ekle</button>
+            </div>
         </div>
-
-        <div id="verifyResult" style="display:none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #30363d;">
-            <h3 id="resName" style="color: #58a6ff;"></h3>
-            <p id="resEvent"></p>
-            <p id="resDate" style="font-size: 0.9rem; opacity: 0.7;"></p>
-            <div id="linkedInArea"></div>
-        </div>
-
-        <div style="margin-top: 30px;">
-            <a href="admin.html" style="color: #8b949e; text-decoration: none; font-size: 0.8rem;">→ Yönetici Girişi</a>
+        
+        <div class="mt-12 opacity-30 hover:opacity-100 transition">
+            <a href="admin.html" class="text-xs uppercase tracking-widest">Yönetim Paneli Girişi</a>
         </div>
     </div>
 
     <script>
         function verify() {
-            const id = document.getElementById('certIdInput').value;
-            if(!id) return alert("Lütfen bir ID girin.");
-            
-            // Demo olduğu için simüle ediyoruz
-            document.getElementById('verifyResult').style.display = 'block';
-            document.getElementById('resName').innerText = "Sayın Katılımcı";
-            document.getElementById('resEvent').innerText = "Siber Güvenlik Eğitimi";
-            document.getElementById('resDate').innerText = "Tarih: 31.03.2026";
-            
-            const linkedInUrl = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=Cyber%20Security%20Workshop&organizationName=METU%20NCC%20Cyber&credentialId=${id}`;
-            document.getElementById('linkedInArea').innerHTML = `<button onclick="window.open('${linkedInUrl}', '_blank')" style="background:#0a66c2; margin-top:15px;">LinkedIn'e Ekle</button>`;
+            const id = document.getElementById('certID').value;
+            if(!id) return alert("ID giriniz.");
+            document.getElementById('result').classList.remove('hidden');
+            document.getElementById('resName').innerText = "SAHİBİ: MERT SERT";
+            document.getElementById('resEvent').innerText = "ETKİNLİK: SİBER GÜVENLİĞE GİRİŞ -1";
+            document.getElementById('resID').innerText = "ID: " + id;
         }
     </script>
 </body>
