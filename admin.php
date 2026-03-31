@@ -355,8 +355,19 @@ document.getElementById('bgInput').onchange = e => {
         fabric.Image.fromURL(f.target.result, img => {
             img.selectable = false;
             img.evented = false;
-            img.scaleToWidth(1600);
-            img.scaleToHeight(900);
+            // Cover mantığı: en-boy oranını koruyarak tüm canvas'ı kapla
+            const canvasW = 1600, canvasH = 900;
+            const imgW = img.width, imgH = img.height;
+            const scaleX = canvasW / imgW;
+            const scaleY = canvasH / imgH;
+            const scale  = Math.max(scaleX, scaleY); // cover = büyük olan scale
+            img.set({
+                scaleX: scale,
+                scaleY: scale,
+                // Ortala (cover taşma durumunda)
+                left: (canvasW - imgW * scale) / 2,
+                top:  (canvasH - imgH * scale) / 2,
+            });
             fCanvas.setBackgroundImage(img, fCanvas.renderAll.bind(fCanvas));
         });
     };
