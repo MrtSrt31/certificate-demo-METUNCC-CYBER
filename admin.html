@@ -2,39 +2,141 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>METU Cyber | Komuta Merkezi</title>
-    <link rel="stylesheet" href="style.css">
+    <title>METU NCC Cyber | Sertifika Üretim Sistemi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; background-image: radial-gradient(#1f2937 0.5px, transparent 0.5px); background-size: 30px 30px; }
+        .cyber-panel { background: rgba(13, 17, 23, 0.95); border: 1px solid #30363d; box-shadow: 0 0 20px rgba(16, 185, 129, 0.1); }
+        .input-dark { background: #0d1117; border: 1px solid #30363d; color: #fff; transition: 0.3s; }
+        .input-dark:focus { border-color: #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); outline: none; }
+    </style>
 </head>
-<body>
-    <div class="dashboard-card">
-        <div class="cyber-header">
+<body class="min-h-screen p-6 md:p-12">
+    <div class="max-w-7xl mx-auto cyber-panel rounded-xl overflow-hidden">
+        <div class="p-6 border-b border-gray-800 flex justify-between items-center bg-gray-900/30">
             <div>
-                <h1 style="margin:0; font-size: 20px; letter-spacing: 2px;">SERTİFİKA KOMUTA MERKEZİ</h1>
-                <p style="margin:5px 0 0; color: #8b949e; font-size: 12px;">Sistem Saati: 31.03.2026 15:54</p>
+                <h1 class="text-xl font-extrabold tracking-widest text-emerald-500 uppercase">Sertifika Üretim Modülü v2.0</h1>
+                <p class="text-gray-500 text-xs mt-1 font-mono">NODE_STATUS: <span class="text-green-400">ENCRYPTED_LIVE</span></p>
             </div>
-            <div class="status-badge underline">Live System</div>
+            <a href="index.html" class="text-xs text-gray-400 hover:text-white transition">← SİTEYE DÖN</a>
         </div>
 
-        <div class="input-group">
-            <input type="text" id="name" placeholder="KATILIMCI ADI">
-            <input type="text" id="event" placeholder="ETKİNLİK ADI">
-            <input type="text" id="date" placeholder="TARİH (Örn: 31 Mart 2026)">
-            <input type="text" id="signer" placeholder="İMZALAYAN">
-        </div>
-        
-        <label style="font-size: 12px; color: #8b949e; display:block; margin-bottom: 10px;">SERTİFİKA ŞABLONU (PNG YÜKLE)</label>
-        <input type="file" id="bgLoad" accept="image/*" style="margin-bottom: 20px;">
+        <div class="grid grid-cols-1 lg:grid-cols-12">
+            <div class="lg:col-span-4 p-8 border-r border-gray-800 space-y-6">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-2">1. ŞABLON YÜKLE (PNG - 1600x900)</label>
+                    <input type="file" id="bgInput" class="w-full text-xs text-gray-400 file:bg-emerald-600 file:text-white file:border-none file:px-4 file:py-2 file:rounded cursor-pointer">
+                </div>
 
-        <button class="btn-primary" onclick="generate()">Sertifikayı Mühürle</button>
+                <div class="space-y-4">
+                    <label class="block text-xs font-bold text-gray-500">2. KATILIMCI & ETKİNLİK VERİSİ</label>
+                    <input id="userName" type="text" placeholder="Katılımcı Tam Adı" class="input-dark w-full p-3 text-sm rounded">
+                    <input id="eventName" type="text" placeholder="Eğitim/Etkinlik Adı" class="input-dark w-full p-3 text-sm rounded">
+                    <input id="eventDate" type="text" placeholder="Tarih (Örn: 31 Mart 2026)" class="input-dark w-full p-3 text-sm rounded">
+                </div>
 
-        <div id="previewArea">
-            <canvas id="certCanvas" width="1600" height="900"></canvas>
-            <div style="margin-top: 20px; display: flex; gap: 10px;">
-                <button onclick="download()" class="btn-primary" style="background:#1f6feb;">PNG OLARAK İNDİR</button>
+                <div class="space-y-4">
+                    <label class="block text-xs font-bold text-gray-500">3. İMZALAYANLAR (Virgül ile ayır)</label>
+                    <input id="signers" type="text" placeholder="Mert Sert, Ahmet Yılmaz" class="input-dark w-full p-3 text-sm rounded">
+                </div>
+
+                <button onclick="renderCertificate()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded tracking-widest transition-all transform active:scale-95 shadow-lg shadow-emerald-900/20">
+                    SERTİFİKAYI MÜHÜRLE
+                </button>
+            </div>
+
+            <div class="lg:col-span-8 p-8 bg-black/50">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xs font-bold text-gray-500 uppercase tracking-widest">Canlı Önizleme (Canvas)</h2>
+                    <div id="downloadBtn" class="hidden">
+                        <button onclick="saveImage()" class="text-xs bg-blue-600 px-4 py-2 rounded font-bold hover:bg-blue-500 transition">PNG İNDİR</button>
+                    </div>
+                </div>
+                
+                <div class="relative border border-gray-800 rounded-lg overflow-hidden bg-gray-900 shadow-2xl">
+                    <canvas id="certCanvas" width="1600" height="900" class="w-full h-auto"></canvas>
+                </div>
+                
+                <p class="mt-4 text-[10px] text-gray-600 font-mono text-center uppercase tracking-widest">Sertifika ID ve QR Kod otomatik olarak sağ alt köşeye mühürlenir.</p>
             </div>
         </div>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+        const canvas = document.getElementById('certCanvas');
+        const ctx = canvas.getContext('2d');
+
+        async function renderCertificate() {
+            const file = document.getElementById('bgInput').files[0];
+            if(!file) return alert("Hata: Önce bir PNG şablon seçmelisin!");
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    // 1. Arkaplanı tertemiz çiz
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, 1600, 900);
+
+                    // 2. Metin Ayarları (Fontları yüklediğimizden emin oluyoruz)
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+
+                    // KATILIMCI ADI (Büyük ve Kalın)
+                    ctx.fillStyle = "#ffffff"; 
+                    ctx.font = "800 85px 'Inter'"; 
+                    ctx.fillText(document.getElementById('userName').value.toUpperCase(), 800, 430);
+
+                    // ETKİNLİK ADI (Siber Yeşil)
+                    ctx.fillStyle = "#10b981";
+                    ctx.font = "700 45px 'Inter'";
+                    ctx.fillText(document.getElementById('eventName').value, 800, 540);
+
+                    // TARİH
+                    ctx.fillStyle = "rgba(255,255,255,0.7)";
+                    ctx.font = "400 30px 'JetBrains Mono'";
+                    ctx.fillText(document.getElementById('eventDate').value, 800, 610);
+
+                    // İMZALAR (Dinamik yan yana dizilim)
+                    const signers = document.getElementById('signers').value.split(',');
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "600 25px 'Inter'";
+                    signers.forEach((s, i) => {
+                        const xPos = (1600 / (signers.length + 1)) * (i + 1);
+                        ctx.fillText(s.trim(), xPos, 780);
+                        ctx.fillRect(xPos - 100, 750, 200, 1); // İmza çizgisi
+                    });
+
+                    // 3. QR KOD VE ID (Profesyonel Mühür)
+                    const certID = "METUCYBER-" + Math.floor(Math.random() * 100000);
+                    const verifyURL = window.location.origin + "/index.html?id=" + certID;
+                    
+                    QRCode.toCanvas(verifyURL, { 
+                        width: 140, 
+                        margin: 2,
+                        color: { dark: '#ffffff', light: '#00000000' } 
+                    }, (err, qr) => {
+                        ctx.drawImage(qr, 1420, 720);
+                        ctx.fillStyle = "rgba(255,255,255,0.3)";
+                        ctx.font = "12px 'JetBrains Mono'";
+                        ctx.textAlign = "right";
+                        ctx.fillText(certID, 1560, 880);
+                        document.getElementById('downloadBtn').classList.remove('hidden');
+                    });
+                };
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+
+        function saveImage() {
+            const link = document.createElement('a');
+            link.download = `METU-Cyber-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
 </body>
 </html>
