@@ -1,9 +1,15 @@
-<?php // METU NCC Cyber — Certificate Command Center v8.0 ?>
+<?php 
+// METU NCC Cyber — Certificate Command Center v8.1 
+// Not: İleride veritabanı (DB) veya Session (Giriş) kontrollerini bu alana ekleyebilirsin.
+
+$defaultPrefix = "METUNCC";
+$currentYear = date("Y");
+?>
 <!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>METU NCC Cyber | Certificate Command Center</title>
+<title>METU NCC Cyber | Certificate Command Center v8.1</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
@@ -79,29 +85,31 @@ body{background:var(--bg);color:var(--t);font-family:'Inter',sans-serif;
 
 .sdiv{border:none;border-top:1px solid #1a2030;margin:2px 0;}
 #tplGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+
+.color-preset{width:24px;height:24px;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:all .15s;}
+.color-preset:hover{border-color:#fff;transform:scale(1.1);}
+.color-preset.active{border-color:var(--g);}
 </style>
 </head>
 <body>
 
-<!-- ═══════════════ SIDEBAR ═══════════════ -->
 <div class="sidebar p-4 flex flex-col gap-4">
 
   <div style="border-bottom:1px solid #1a2030;padding-bottom:12px;">
     <div style="color:var(--g);font-size:11px;font-weight:900;letter-spacing:.2em;text-transform:uppercase;">
-      Command Center <span style="opacity:.35;">v8.0</span></div>
+      Command Center <span style="opacity:.35;">v8.1</span></div>
     <div style="font-size:9px;opacity:.3;font-family:'JetBrains Mono';margin-top:3px;">
       METU NCC CYBER · CERT PRODUCTION</div>
   </div>
 
-  <!-- TABS -->
   <div class="flex gap-1 flex-wrap">
     <button class="tab-btn active" onclick="switchTab('design',this)">Tasarım</button>
+    <button class="tab-btn" onclick="switchTab('colors',this)">Renkler</button>
     <button class="tab-btn" onclick="switchTab('assets',this)">Varlıklar</button>
     <button class="tab-btn" onclick="switchTab('layers',this)">Katmanlar</button>
     <button class="tab-btn" onclick="switchTab('bulk',this)">Toplu Üretim</button>
   </div>
 
-  <!-- ─────── TAB: TASARIM ─────── -->
   <div id="tab-design" class="flex flex-col gap-3">
 
     <div>
@@ -207,7 +215,66 @@ body{background:var(--bg);color:var(--t);font-family:'Inter',sans-serif;
 
   </div>
 
-  <!-- ─────── TAB: VARLIKLAR ─────── -->
+  <div id="tab-colors" class="hidden flex-col gap-3">
+    
+    <div>
+      <span class="st">Renk Paletleri — Tek Tık</span>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px;">
+        <div class="color-preset" style="background:#d4af37;" onclick="applyColorPreset('gold')" title="Altın"></div>
+        <div class="color-preset" style="background:#0ea5e9;" onclick="applyColorPreset('blue')" title="Mavi"></div>
+        <div class="color-preset" style="background:#10b981;" onclick="applyColorPreset('green')" title="Yeşil"></div>
+        <div class="color-preset" style="background:#c084fc;" onclick="applyColorPreset('purple')" title="Mor"></div>
+        <div class="color-preset" style="background:#6366f1;" onclick="applyColorPreset('indigo')" title="İndigo"></div>
+        <div class="color-preset" style="background:#ef4444;" onclick="applyColorPreset('red')" title="Kırmızı"></div>
+        <div class="color-preset" style="background:#f59e0b;" onclick="applyColorPreset('orange')" title="Turuncu"></div>
+        <div class="color-preset" style="background:#ec4899;" onclick="applyColorPreset('pink')" title="Pembe"></div>
+        <div class="color-preset" style="background:#14b8a6;" onclick="applyColorPreset('teal')" title="Turkuaz"></div>
+        <div class="color-preset" style="background:#fff;" onclick="applyColorPreset('white')" title="Beyaz"></div>
+      </div>
+      <div style="font-size:8px;color:#6b7280;line-height:1.5;">
+        ℹ️ Palette tıkla → Tüm renkli nesneler otomatik değişir (çerçeveler, yazılar, çizgiler)
+      </div>
+    </div>
+
+    <hr class="sdiv">
+
+    <div>
+      <span class="st">Manuel Renk Değiştir</span>
+      <div style="font-size:9px;color:#9ca3af;margin-bottom:8px;">
+        1️⃣ Canvas'ta değiştirmek istediğin nesneyi seç<br>
+        2️⃣ Aşağıdaki renk seçiciyi kullan
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input type="color" id="manualColor" value="#10b981"
+          style="width:50px;height:38px;border-radius:4px;border:1px solid var(--b);cursor:pointer;padding:2px;">
+        <button class="btn bg" style="flex:1;" onclick="applyManualColor()">Seçili Nesneye Uygula</button>
+      </div>
+    </div>
+
+    <hr class="sdiv">
+
+    <div>
+      <span class="st">Toplu Renk Değiştir</span>
+      <div style="font-size:9px;color:#9ca3af;margin-bottom:8px;">
+        Belirli bir renkteki tüm nesneleri değiştir
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+        <div>
+          <label style="font-size:8px;color:#6b7280;display:block;margin-bottom:3px;">Eski Renk</label>
+          <input type="color" id="oldColorBulk" value="#d4af37"
+            style="width:100%;height:34px;border-radius:4px;border:1px solid var(--b);cursor:pointer;padding:2px;">
+        </div>
+        <div>
+          <label style="font-size:8px;color:#6b7280;display:block;margin-bottom:3px;">Yeni Renk</label>
+          <input type="color" id="newColorBulk" value="#10b981"
+            style="width:100%;height:34px;border-radius:4px;border:1px solid var(--b);cursor:pointer;padding:2px;">
+        </div>
+      </div>
+      <button class="btn bg" onclick="bulkColorReplace()">🔄 Toplu Değiştir</button>
+    </div>
+
+  </div>
+
   <div id="tab-assets" class="hidden flex-col gap-3">
 
     <div>
@@ -264,7 +331,6 @@ body{background:var(--bg);color:var(--t);font-family:'Inter',sans-serif;
 
   </div>
 
-  <!-- ─────── TAB: KATMANLAR ─────── -->
   <div id="tab-layers" class="hidden flex-col gap-2">
     <span class="st">Katman Listesi (üst = önde)</span>
     <div id="layerList" class="flex flex-col gap-1" style="font-size:10px;"></div>
@@ -275,13 +341,12 @@ body{background:var(--bg);color:var(--t);font-family:'Inter',sans-serif;
     <button class="btn bg" onclick="refreshLayers()">↺ Yenile</button>
   </div>
 
-  <!-- ─────── TAB: TOPLU ÜRETİM ─────── -->
   <div id="tab-bulk" class="hidden flex-col gap-3">
 
     <div>
       <span class="st">Katılımcı Listesi (her satır bir isim)</span>
       <textarea id="bulkNames" rows="6" class="ci"
-        placeholder="Mert Sert&#10;Ahmet Yılmaz&#10;Ayşe Demir"></textarea>
+        placeholder="Ahmet Yılmaz&#10;Ayşe Demir"></textarea>
     </div>
 
     <hr class="sdiv">
@@ -291,11 +356,11 @@ body{background:var(--bg);color:var(--t);font-family:'Inter',sans-serif;
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
         <div>
           <label style="font-size:8px;color:#6b7280;display:block;margin-bottom:3px;">Prefix</label>
-          <input id="prefix" value="METUNCC" class="ci">
+          <input id="prefix" value="<?php echo htmlspecialchars($defaultPrefix); ?>" class="ci">
         </div>
         <div>
           <label style="font-size:8px;color:#6b7280;display:block;margin-bottom:3px;">Yıl</label>
-          <input id="certYear" value="2026" class="ci">
+          <input id="certYear" value="<?php echo htmlspecialchars($currentYear); ?>" class="ci">
         </div>
       </div>
       <label style="font-size:8px;color:#6b7280;display:block;margin-bottom:3px;">Örnek çıktı:</label>
@@ -312,7 +377,7 @@ body{background:var(--bg);color:var(--t);font-family:'Inter',sans-serif;
 
     <div>
       <span class="st">Etkinlik Adı</span>
-      <input id="eventTag" value="Cyber Workshop 2026" class="ci">
+      <input id="eventTag" value="Cyber Workshop <?php echo htmlspecialchars($currentYear); ?>" class="ci">
     </div>
 
     <div id="bulkProgress" style="display:none;">
@@ -332,7 +397,6 @@ body{background:var(--bg);color:var(--t);font-family:'Inter',sans-serif;
 
 </div>
 
-<!-- ═══════════════ CANVAS ═══════════════ -->
 <div id="mainArea">
   <div id="wrap">
     <canvas id="fCanvas"></canvas>
@@ -359,7 +423,6 @@ const assets={logo:null,sig1:null,sig2:null};
 
 // ════════════════════════════════════
 //  STOCHASTIC CERT-ID
-//  48-bit crypto.getRandomValues → ~281 trilyon kombinasyon
 // ════════════════════════════════════
 function genCertId(prefix,year){
   const b=new Uint8Array(6);
@@ -397,7 +460,7 @@ setTimeout(resize,100);
 //  TABS
 // ════════════════════════════════════
 function switchTab(name,btn){
-  ['design','assets','layers','bulk'].forEach(t=>{
+  ['design','colors','assets','layers','bulk'].forEach(t=>{
     const el=document.getElementById('tab-'+t);
     el.classList.add('hidden');el.classList.remove('flex');
   });
@@ -450,21 +513,38 @@ function placeAsset(key,tw,th,cx,cy,layerName){
 }
 
 // ════════════════════════════════════
-//  FABRIC HELPERS
+//  FABRIC HELPERS — TÜM ELEMANLAR EDİTABLE
 // ════════════════════════════════════
 const mkT=(txt,o)=>new fabric.IText(txt,Object.assign(
   {fontFamily:'Inter',fontWeight:'700',fill:'#fff',originX:'center'},o));
+
+// ARTIK TÜM ŞEKİLLER SEÇİLEBİLİR & SİLİNEBİLİR
 const mkR=(o)=>new fabric.Rect(Object.assign(
-  {fill:'transparent',stroke:'#fff',strokeWidth:2,selectable:false,evented:false},o));
+  {fill:'transparent',stroke:'#fff',strokeWidth:2},o));
+
 const mkL=(x1,y1,x2,y2,o)=>new fabric.Line([x1,y1,x2,y2],Object.assign(
-  {stroke:'#fff',strokeWidth:1,selectable:false,evented:false},o));
+  {stroke:'#fff',strokeWidth:1},o));
+
 const mkC=(o)=>new fabric.Circle(Object.assign(
-  {fill:'transparent',stroke:'#fff',strokeWidth:2,selectable:false,evented:false},o));
+  {fill:'transparent',stroke:'#fff',strokeWidth:2},o));
+
 function mkCorners(x,y,w,h,col,sz=50,sw=2){
   return[[x,y,x+sz,y],[x,y,x,y+sz],[x+w,y,x+w-sz,y],[x+w,y,x+w,y+sz],
     [x,y+h,x+sz,y+h],[x,y+h,x,y+h-sz],[x+w,y+h,x+w-sz,y+h],[x+w,y+h,x+w,y+h-sz]]
-    .map(p=>new fabric.Line(p,{stroke:col,strokeWidth:sw,selectable:false,evented:false}));
+    .map(p=>new fabric.Line(p,{stroke:col,strokeWidth:sw}));
 }
+
+// Logo placeholder helper — artık silme iznimiz var
+function mkLogoPlaceholder(x,y,w,h,label){
+  const g=new fabric.Group([
+    new fabric.Rect({left:-w/2,top:-h/2,width:w,height:h,
+      fill:'rgba(255,255,255,0.02)',stroke:'#374151',strokeWidth:1,strokeDashArray:[4,4],rx:4,ry:4}),
+    new fabric.IText(label,{left:0,top:0,fontSize:11,fill:'#6b7280',
+      fontFamily:'Inter',originX:'center',originY:'center'})
+  ],{left:x,top:y,selectable:true,evented:true,name:'logoPlaceholder'});
+  return g;
+}
+
 const clearLayers=()=>{fCanvas.getObjects().forEach(o=>fCanvas.remove(o));qrObj=null;};
 const today=()=>new Date().toLocaleDateString('tr-TR',{year:'numeric',month:'long',day:'numeric'});
 
@@ -474,15 +554,16 @@ const today=()=>new Date().toLocaleDateString('tr-TR',{year:'numeric',month:'lon
 function achievement(){
   fCanvas.setBackgroundColor('#0a0700',fCanvas.renderAll.bind(fCanvas));
   fCanvas.add(
-    mkR({left:32,top:32,width:CW-64,height:CH-64,stroke:'#b8860b',strokeWidth:3,rx:3,ry:3}),
-    mkR({left:52,top:52,width:CW-104,height:CH-104,stroke:'#d4af37',strokeWidth:.8}),
-    ...mkCorners(32,32,CW-64,CH-64,'#d4af37',70,2.5),
-    mkL(180,180,CW-180,180,{stroke:'#d4af37',strokeWidth:.8,opacity:.5}),
-    mkL(180,CH-180,CW-180,CH-180,{stroke:'#d4af37',strokeWidth:.8,opacity:.5}),
-    mkC({left:748,top:85,radius:52,stroke:'#d4af37',strokeWidth:2}),
-    mkC({left:762,top:99,radius:38,stroke:'#b8860b',strokeWidth:1}),
+    mkR({left:32,top:32,width:CW-64,height:CH-64,stroke:'#b8860b',strokeWidth:3,rx:3,ry:3,name:'border1'}),
+    mkR({left:52,top:52,width:CW-104,height:CH-104,stroke:'#d4af37',strokeWidth:.8,name:'border2'}),
+    ...mkCorners(32,32,CW-64,CH-64,'#d4af37',70,2.5).map((l,i)=>Object.assign(l,{name:'corner'+i})),
+    mkL(180,180,CW-180,180,{stroke:'#d4af37',strokeWidth:.8,opacity:.5,name:'line1'}),
+    mkL(180,CH-180,CW-180,CH-180,{stroke:'#d4af37',strokeWidth:.8,opacity:.5,name:'line2'}),
+    mkC({left:748,top:85,radius:52,stroke:'#d4af37',strokeWidth:2,name:'circle1'}),
+    mkC({left:762,top:99,radius:38,stroke:'#b8860b',strokeWidth:1,name:'circle2'}),
     mkT('★',{left:800,top:137,fontSize:34,fill:'#d4af37',fontFamily:'serif',
-      originX:'center',originY:'center',selectable:false,evented:false,name:'dStar'}),
+      originX:'center',originY:'center',name:'star'}),
+    mkLogoPlaceholder(800,100,280,90,'🏛️ LOGO YERLEŞTİR'),
     mkT('CERTIFICATE OF ACHIEVEMENT',{left:800,top:220,fontSize:22,
       fontFamily:'Playfair Display',fontWeight:'900',fill:'#d4af37',letterSpacing:5,name:'layerTitle'}),
     mkT('Bu belge aşağıdaki kişiye takdim edilmiştir',{left:800,top:266,fontSize:16,
@@ -495,25 +576,25 @@ function achievement(){
       left:800,top:540,fontSize:15,fontFamily:'Inter',fontWeight:'300',fill:'#9ca3af',name:'layerDesc'}),
     mkT(today(),{left:800,top:594,fontSize:13,fontFamily:'JetBrains Mono',fill:'#6b7280',name:'layerDate'}),
     // İmza 1
-    mkL(118,CH-120,435,CH-120,{stroke:'#d4af37',strokeWidth:1}),
+    mkL(118,CH-120,435,CH-120,{stroke:'#d4af37',strokeWidth:1,name:'sigLine1'}),
     mkT('Prof. Dr. İsim Soyisim',{left:276,top:CH-108,fontSize:12,
       fontFamily:'Playfair Display',fontStyle:'italic',fill:'#d4af37',opacity:.7,
-      originX:'center',selectable:false,evented:false,name:'dSig1'}),
+      originX:'center',name:'sig1Name'}),
     mkT('PROGRAM DİREKTÖRÜ',{left:276,top:CH-88,fontSize:8,
       fontFamily:'JetBrains Mono',letterSpacing:2,fill:'#b8860b',
-      originX:'center',selectable:false,evented:false,name:'dSig1T'}),
+      originX:'center',name:'sig1Title'}),
     // İmza 2
-    mkL(CW-435,CH-120,CW-118,CH-120,{stroke:'#d4af37',strokeWidth:1}),
+    mkL(CW-435,CH-120,CW-118,CH-120,{stroke:'#d4af37',strokeWidth:1,name:'sigLine2'}),
     mkT('Prof. Dr. İsim Soyisim',{left:CW-276,top:CH-108,fontSize:12,
       fontFamily:'Playfair Display',fontStyle:'italic',fill:'#d4af37',opacity:.7,
-      originX:'center',selectable:false,evented:false,name:'dSig2'}),
+      originX:'center',name:'sig2Name'}),
     mkT('BÖLÜM BAŞKANI',{left:CW-276,top:CH-88,fontSize:8,
       fontFamily:'JetBrains Mono',letterSpacing:2,fill:'#b8860b',
-      originX:'center',selectable:false,evented:false,name:'dSig2T'}),
+      originX:'center',name:'sig2Title'}),
     // Mühür
-    mkC({left:755,top:CH-122,radius:48,stroke:'#d4af37',strokeWidth:1,fill:'rgba(212,175,55,.05)'}),
+    mkC({left:755,top:CH-122,radius:48,stroke:'#d4af37',strokeWidth:1,fill:'rgba(212,175,55,.05)',name:'seal'}),
     mkT('MÜHÜR',{left:800,top:CH-77,fontSize:9,fontFamily:'JetBrains Mono',
-      fill:'#d4af37',opacity:.3,originX:'center',selectable:false,evented:false,name:'dSeal'}),
+      fill:'#d4af37',opacity:.3,originX:'center',name:'sealText'}),
     mkT('CERT_ID',{left:CW-70,top:CH-42,fontSize:11,
       fontFamily:'JetBrains Mono',fill:'#d4af37',opacity:.4,originX:'right',name:'layerID'}),
   );
@@ -525,22 +606,19 @@ function achievement(){
 function participation(){
   fCanvas.setBackgroundColor('#020c1b',fCanvas.renderAll.bind(fCanvas));
   for(let i=0;i<16;i++){
-    fCanvas.add(mkL(0,i*60,CW,i*60,{stroke:'#061a30',strokeWidth:.5}));
-    fCanvas.add(mkL(i*107,0,i*107,CH,{stroke:'#061a30',strokeWidth:.5}));
+    fCanvas.add(mkL(0,i*60,CW,i*60,{stroke:'#061a30',strokeWidth:.5,name:'gridH'+i}));
+    fCanvas.add(mkL(i*107,0,i*107,CH,{stroke:'#061a30',strokeWidth:.5,name:'gridV'+i}));
   }
   fCanvas.add(
-    new fabric.Rect({left:0,top:0,width:10,height:CH,fill:'#0ea5e9',selectable:false,evented:false}),
-    new fabric.Rect({left:CW-10,top:0,width:10,height:CH,fill:'#0ea5e9',selectable:false,evented:false}),
-    new fabric.Rect({left:10,top:0,width:CW-20,height:5,fill:'#0284c7',selectable:false,evented:false}),
-    mkC({left:726,top:65,radius:74,stroke:'#0ea5e9',strokeWidth:2,fill:'#030d1a'}),
-    mkC({left:740,top:79,radius:60,stroke:'#0284c7',strokeWidth:1}),
-    mkT('NCC',{left:800,top:139,fontSize:22,fontFamily:'Space Grotesk',fontWeight:'700',
-      fill:'#7dd3fc',originX:'center',originY:'center',selectable:false,evented:false,name:'dNCC'}),
-    mkT('CYBER',{left:800,top:163,fontSize:10,fontFamily:'JetBrains Mono',
-      fill:'#0ea5e9',opacity:.6,originX:'center',selectable:false,evented:false,name:'dCY'}),
+    new fabric.Rect({left:0,top:0,width:10,height:CH,fill:'#0ea5e9',name:'accent1'}),
+    new fabric.Rect({left:CW-10,top:0,width:10,height:CH,fill:'#0ea5e9',name:'accent2'}),
+    new fabric.Rect({left:10,top:0,width:CW-20,height:5,fill:'#0284c7',name:'accent3'}),
+    mkC({left:726,top:65,radius:74,stroke:'#0ea5e9',strokeWidth:2,fill:'#030d1a',name:'badge1'}),
+    mkC({left:740,top:79,radius:60,stroke:'#0284c7',strokeWidth:1,name:'badge2'}),
+    mkLogoPlaceholder(800,139,240,80,'🏛️ LOGO / ROZET'),
     mkT('CERTIFICATE OF PARTICIPATION',{left:800,top:212,fontSize:20,
       fontFamily:'Space Grotesk',fontWeight:'700',fill:'#0ea5e9',letterSpacing:4,name:'layerTitle'}),
-    mkL(240,248,CW-240,248,{stroke:'#0ea5e9',strokeWidth:1,opacity:.3}),
+    mkL(240,248,CW-240,248,{stroke:'#0ea5e9',strokeWidth:1,opacity:.3,name:'divider'}),
     mkT('Katılım belgesi aşağıdaki kişiye verilmiştir',{left:800,top:272,fontSize:15,
       fontFamily:'Inter',fontWeight:'300',fill:'#94a3b8',name:'layerSub'}),
     mkT('KATILIMCI ADI',{left:800,top:365,fontSize:78,
@@ -549,40 +627,39 @@ function participation(){
       fontFamily:'Space Grotesk',fontWeight:'500',fill:'#7dd3fc',name:'layerEvent'}),
     mkT(today(),{left:800,top:522,fontSize:13,fontFamily:'JetBrains Mono',fill:'#334155',name:'layerDate'}),
     new fabric.Rect({left:628,top:618,width:344,height:52,fill:'#0c2d4a',
-      stroke:'#0ea5e9',strokeWidth:1,rx:4,ry:4,selectable:false,evented:false}),
+      stroke:'#0ea5e9',strokeWidth:1,rx:4,ry:4,name:'verifyBox'}),
     mkT('✓  VERIFIED PARTICIPANT',{left:800,top:644,fontSize:12,
-      fontFamily:'JetBrains Mono',fill:'#7dd3fc',letterSpacing:2,
-      selectable:false,evented:false,name:'dVer'}),
-    mkL(300,CH-100,700,CH-100,{stroke:'#0ea5e9',strokeWidth:1,opacity:.4}),
+      fontFamily:'JetBrains Mono',fill:'#7dd3fc',letterSpacing:2,name:'verifyText'}),
+    mkL(300,CH-100,700,CH-100,{stroke:'#0ea5e9',strokeWidth:1,opacity:.4,name:'sigLine'}),
     mkT('Yetkili İmza',{left:500,top:CH-88,fontSize:12,
       fontFamily:'Playfair Display',fontStyle:'italic',fill:'#7dd3fc',opacity:.55,
-      originX:'center',selectable:false,evented:false,name:'dSig'}),
+      originX:'center',name:'sigText'}),
     mkT('CERT_ID',{left:CW-70,top:CH-42,fontSize:11,
       fontFamily:'JetBrains Mono',fill:'#0ea5e9',opacity:.3,originX:'right',name:'layerID'}),
   );
 }
 
 // ════════════════════════════════════
-//  LAYOUT 3: EĞİTİM SERTİFİKASI (Terminal Cyber)
+//  LAYOUT 3: EĞİTİM SERTİFİKASI
 // ════════════════════════════════════
 function training(){
   fCanvas.setBackgroundColor('#030a06',fCanvas.renderAll.bind(fCanvas));
   for(let r=0;r<9;r++) for(let c=0;c<21;c++)
     fCanvas.add(new fabric.Circle({left:38+c*74+(r%2)*37,top:38+r*96,radius:1.5,
-      fill:'#0a2414',selectable:false,evented:false}));
+      fill:'#0a2414',name:'dot_'+r+'_'+c}));
   fCanvas.add(
-    mkR({left:55,top:55,width:CW-110,height:CH-110,stroke:'#10b981',strokeWidth:1.5}),
-    ...mkCorners(55,55,CW-110,CH-110,'#10b981',55,2),
-    new fabric.Rect({left:55,top:55,width:CW-110,height:38,fill:'#071a0e',selectable:false,evented:false}),
-    new fabric.Circle({left:78,top:66,radius:8,fill:'#ef4444',selectable:false,evented:false}),
-    new fabric.Circle({left:100,top:66,radius:8,fill:'#f59e0b',selectable:false,evented:false}),
-    new fabric.Circle({left:122,top:66,radius:8,fill:'#10b981',selectable:false,evented:false}),
+    mkR({left:55,top:55,width:CW-110,height:CH-110,stroke:'#10b981',strokeWidth:1.5,name:'mainBorder'}),
+    ...mkCorners(55,55,CW-110,CH-110,'#10b981',55,2).map((l,i)=>Object.assign(l,{name:'corner'+i})),
+    new fabric.Rect({left:55,top:55,width:CW-110,height:38,fill:'#071a0e',name:'terminalBar'}),
+    new fabric.Circle({left:78,top:66,radius:8,fill:'#ef4444',name:'btnClose'}),
+    new fabric.Circle({left:100,top:66,radius:8,fill:'#f59e0b',name:'btnMin'}),
+    new fabric.Circle({left:122,top:66,radius:8,fill:'#10b981',name:'btnMax'}),
     mkT('METU NCC CYBER — CERTIFICATE TERMINAL v2026',{
       left:800,top:74,fontSize:9,fontFamily:'JetBrains Mono',fontWeight:'400',
-      fill:'#4ade80',letterSpacing:2,selectable:false,evented:false,name:'dTerm'}),
+      fill:'#4ade80',letterSpacing:2,name:'termTitle'}),
     mkT('> CERTIFICATE OF TRAINING COMPLETION',{left:120,top:128,fontSize:13,
       fontFamily:'JetBrains Mono',fill:'#10b981',originX:'left',name:'layerTitle'}),
-    mkL(120,158,CW-120,158,{stroke:'#10b981',strokeWidth:.4,opacity:.3}),
+    mkL(120,158,CW-120,158,{stroke:'#10b981',strokeWidth:.4,opacity:.3,name:'div1'}),
     mkT('> Aşağıdaki kişi eğitimi başarıyla tamamlamıştır:',{left:120,top:182,fontSize:12,
       fontFamily:'JetBrains Mono',fill:'#4ade80',opacity:.65,originX:'left',name:'layerSub'}),
     mkT('KATILIMCI_ADI',{left:800,top:325,fontSize:80,
@@ -594,29 +671,26 @@ function training(){
       fill:'#4ade80',opacity:.5,originX:'left',name:'layerMeta'}),
     mkT('> Tarih: '+today(),{left:120,top:510,fontSize:11,
       fontFamily:'JetBrains Mono',fill:'#4ade80',opacity:.5,originX:'left',name:'layerDate'}),
-    mkL(120,CH-108,480,CH-108,{stroke:'#10b981',strokeWidth:1}),
+    mkL(120,CH-108,480,CH-108,{stroke:'#10b981',strokeWidth:1,name:'sigLine'}),
     mkT('> YETKİLİ_İMZA',{left:120,top:CH-96,fontSize:10,
       fontFamily:'JetBrains Mono',fill:'#10b981',opacity:.35,
-      originX:'left',selectable:false,evented:false,name:'dSig'}),
+      originX:'left',name:'sigText'}),
     mkT('CERT_ID',{left:CW-75,top:CH-70,fontSize:11,
       fontFamily:'JetBrains Mono',fill:'#10b981',opacity:.35,originX:'right',name:'layerID'}),
   );
 }
 
 // ════════════════════════════════════
-//  LAYOUT 4: SPONSORLU ETKİNLİK (Mor)
+//  LAYOUT 4: SPONSORLU ETKİNLİK
 // ════════════════════════════════════
 function sponsored(){
   fCanvas.setBackgroundColor('#08000f',fCanvas.renderAll.bind(fCanvas));
   fCanvas.add(
-    new fabric.Rect({left:0,top:0,width:350,height:CH,fill:'rgba(139,92,246,.03)',selectable:false,evented:false}),
-    new fabric.Rect({left:CW-350,top:0,width:350,height:CH,fill:'rgba(139,92,246,.03)',selectable:false,evented:false}),
-    new fabric.Rect({left:0,top:0,width:CW,height:7,fill:'#7c3aed',selectable:false,evented:false}),
-    ...mkCorners(38,38,CW-76,CH-115,'#7c3aed',55,2),
-    mkR({left:672,top:50,width:256,height:92,stroke:'#7c3aed',strokeWidth:1,rx:4,ry:4,
-      fill:'rgba(124,58,237,.08)'}),
-    mkT('ETKİNLİK LOGOSU',{left:800,top:96,fontSize:11,fontFamily:'Inter',
-      fill:'#a855f7',opacity:.35,selectable:false,evented:false,name:'dLogoHint'}),
+    new fabric.Rect({left:0,top:0,width:350,height:CH,fill:'rgba(139,92,246,.03)',name:'sidePanel1'}),
+    new fabric.Rect({left:CW-350,top:0,width:350,height:CH,fill:'rgba(139,92,246,.03)',name:'sidePanel2'}),
+    new fabric.Rect({left:0,top:0,width:CW,height:7,fill:'#7c3aed',name:'topBar'}),
+    ...mkCorners(38,38,CW-76,CH-115,'#7c3aed',55,2).map((l,i)=>Object.assign(l,{name:'corner'+i})),
+    mkLogoPlaceholder(800,96,256,92,'🏛️ ETKİNLİK LOGOSU'),
     mkT('CERTIFICATE OF PARTICIPATION',{left:800,top:200,fontSize:20,
       fontFamily:'Space Grotesk',fontWeight:'700',fill:'#d946ef',letterSpacing:4,name:'layerTitle'}),
     mkT('Bu etkinliğe katılım sağlayan kişiye verilmiştir',{left:800,top:244,fontSize:15,
@@ -626,50 +700,39 @@ function sponsored(){
     mkT('Cyber Security Summit 2026',{left:800,top:452,fontSize:28,
       fontFamily:'Space Grotesk',fontWeight:'500',fill:'#c084fc',name:'layerEvent'}),
     mkT(today(),{left:800,top:504,fontSize:13,fontFamily:'JetBrains Mono',fill:'#6b7280',name:'layerDate'}),
-    // İmza
-    mkL(CW-445,CH-116,CW-98,CH-116,{stroke:'#7c3aed',strokeWidth:1}),
+    mkL(CW-445,CH-116,CW-98,CH-116,{stroke:'#7c3aed',strokeWidth:1,name:'sigLine'}),
     mkT('Organizatör İmzası',{left:CW-271,top:CH-104,fontSize:12,
       fontFamily:'Playfair Display',fontStyle:'italic',fill:'#c084fc',opacity:.55,
-      originX:'center',selectable:false,evented:false,name:'dSig'}),
-    // Alt sponsor banner
+      originX:'center',name:'sigText'}),
     new fabric.Rect({left:0,top:CH-96,width:CW,height:96,fill:'#100020',
-      stroke:'#7c3aed',strokeWidth:1,selectable:false,evented:false}),
+      stroke:'#7c3aed',strokeWidth:1,name:'sponsorBar'}),
     mkT('DESTEKÇÜLER',{left:72,top:CH-80,fontSize:8,fontFamily:'JetBrains Mono',
-      fill:'#7c3aed',letterSpacing:3,opacity:.6,originX:'left',
-      selectable:false,evented:false,name:'dSponLabel'}),
+      fill:'#7c3aed',letterSpacing:3,opacity:.6,originX:'left',name:'sponsorLabel'}),
     mkT('CERT_ID',{left:CW-70,top:CH-110,fontSize:10,
       fontFamily:'JetBrains Mono',fill:'#7c3aed',opacity:.35,originX:'right',name:'layerID'}),
   );
-  // 4 sponsor kutusu
+  // 4 sponsor placeholder
   [{x:218,n:'SPONSOR 1'},{x:526,n:'SPONSOR 2'},{x:834,n:'SPONSOR 3'},{x:1142,n:'SPONSOR 4'}]
   .forEach(s=>{
-    fCanvas.add(
-      mkR({left:s.x-90,top:CH-84,width:180,height:60,
-        stroke:'#4c1d95',strokeWidth:1,rx:3,ry:3,fill:'rgba(124,58,237,.08)'}),
-      mkT(s.n,{left:s.x,top:CH-56,fontSize:11,fontFamily:'Inter',
-        fill:'#a855f7',opacity:.45,name:'dSpon_'+s.n}),
-    );
+    fCanvas.add(mkLogoPlaceholder(s.x,CH-54,180,60,'📦 '+s.n));
   });
 }
 
 // ════════════════════════════════════
-//  LAYOUT 5: RESMİ İMZALI BELGE (İndigo)
+//  LAYOUT 5: RESMİ BELGE
 // ════════════════════════════════════
 function official(){
   fCanvas.setBackgroundColor('#06060e',fCanvas.renderAll.bind(fCanvas));
   fCanvas.add(
-    mkR({left:28,top:28,width:CW-56,height:CH-56,stroke:'#312e81',strokeWidth:2.5,rx:2,ry:2}),
-    mkR({left:46,top:46,width:CW-92,height:CH-92,stroke:'#4338ca',strokeWidth:.6}),
-    ...mkCorners(28,28,CW-56,CH-56,'#6366f1',65,2.5),
-    mkC({left:712,top:50,radius:88,stroke:'#4338ca',strokeWidth:2}),
-    mkC({left:727,top:65,radius:73,stroke:'#312e81',strokeWidth:1}),
-    mkT('METU NCC',{left:800,top:122,fontSize:16,fontFamily:'Playfair Display',fontWeight:'700',
-      fill:'#818cf8',originX:'center',originY:'center',selectable:false,evented:false,name:'dSealT'}),
-    mkT('CYBER',{left:800,top:150,fontSize:10,fontFamily:'JetBrains Mono',
-      fill:'#6366f1',originX:'center',selectable:false,evented:false,name:'dSealS'}),
+    mkR({left:28,top:28,width:CW-56,height:CH-56,stroke:'#312e81',strokeWidth:2.5,rx:2,ry:2,name:'border1'}),
+    mkR({left:46,top:46,width:CW-92,height:CH-92,stroke:'#4338ca',strokeWidth:.6,name:'border2'}),
+    ...mkCorners(28,28,CW-56,CH-56,'#6366f1',65,2.5).map((l,i)=>Object.assign(l,{name:'corner'+i})),
+    mkC({left:712,top:50,radius:88,stroke:'#4338ca',strokeWidth:2,name:'seal1'}),
+    mkC({left:727,top:65,radius:73,stroke:'#312e81',strokeWidth:1,name:'seal2'}),
+    mkLogoPlaceholder(800,122,200,80,'🏛️ KURUM LOGOSU'),
     mkT('RESMİ SERTİFİKA',{left:800,top:206,fontSize:19,
       fontFamily:'Playfair Display',fontWeight:'900',fill:'#c7d2fe',letterSpacing:8,name:'layerTitle'}),
-    mkL(180,240,CW-180,240,{stroke:'#4338ca',strokeWidth:.5}),
+    mkL(180,240,CW-180,240,{stroke:'#4338ca',strokeWidth:.5,name:'div1'}),
     mkT('Aşağıdaki kişinin ilgili programı eksiksiz tamamladığı',{left:800,top:264,fontSize:15,
       fontFamily:'Inter',fontWeight:'300',fill:'#94a3b8',name:'layerSub'}),
     mkT('tasdik ve tescil olunur.',{left:800,top:290,fontSize:15,
@@ -682,43 +745,40 @@ function official(){
       left:800,top:534,fontSize:12,fontFamily:'JetBrains Mono',fill:'#374151',name:'layerMeta'}),
     mkT('Veriliş Tarihi: '+today(),{left:800,top:558,fontSize:12,
       fontFamily:'JetBrains Mono',fill:'#374151',name:'layerDate'}),
-    // İmza 1
-    mkL(115,CH-122,455,CH-122,{stroke:'#4338ca',strokeWidth:1}),
+    mkL(115,CH-122,455,CH-122,{stroke:'#4338ca',strokeWidth:1,name:'sigLine1'}),
     mkT('Prof. Dr. İsim Soyisim',{left:285,top:CH-110,fontSize:12,
       fontFamily:'Playfair Display',fontStyle:'italic',fill:'#818cf8',opacity:.6,
-      originX:'center',selectable:false,evented:false,name:'dSig1'}),
+      originX:'center',name:'sig1Name'}),
     mkT('PROGRAM DİREKTÖRÜ',{left:285,top:CH-90,fontSize:8,
       fontFamily:'JetBrains Mono',letterSpacing:2,fill:'#6366f1',
-      originX:'center',selectable:false,evented:false,name:'dSig1T'}),
-    // İmza 2
-    mkL(CW-455,CH-122,CW-115,CH-122,{stroke:'#4338ca',strokeWidth:1}),
+      originX:'center',name:'sig1Title'}),
+    mkL(CW-455,CH-122,CW-115,CH-122,{stroke:'#4338ca',strokeWidth:1,name:'sigLine2'}),
     mkT('Prof. Dr. İsim Soyisim',{left:CW-285,top:CH-110,fontSize:12,
       fontFamily:'Playfair Display',fontStyle:'italic',fill:'#818cf8',opacity:.6,
-      originX:'center',selectable:false,evented:false,name:'dSig2'}),
+      originX:'center',name:'sig2Name'}),
     mkT('BÖLÜM BAŞKANI',{left:CW-285,top:CH-90,fontSize:8,
       fontFamily:'JetBrains Mono',letterSpacing:2,fill:'#6366f1',
-      originX:'center',selectable:false,evented:false,name:'dSig2T'}),
-    // Mühür
-    mkC({left:752,top:CH-120,radius:46,stroke:'#4338ca',strokeWidth:1,fill:'rgba(67,56,202,.07)'}),
+      originX:'center',name:'sig2Title'}),
+    mkC({left:752,top:CH-120,radius:46,stroke:'#4338ca',strokeWidth:1,fill:'rgba(67,56,202,.07)',name:'sealCircle'}),
     mkT('MÜHÜR',{left:800,top:CH-78,fontSize:8,fontFamily:'JetBrains Mono',
-      fill:'#4338ca',opacity:.3,originX:'center',selectable:false,evented:false,name:'dMuhur'}),
+      fill:'#4338ca',opacity:.3,originX:'center',name:'sealText'}),
     mkT('CERT_ID',{left:CW-70,top:CH-44,fontSize:11,
       fontFamily:'JetBrains Mono',fill:'#4338ca',opacity:.35,originX:'right',name:'layerID'}),
   );
 }
 
 // ════════════════════════════════════
-//  LAYOUT 6: MİNİMALİST (B&W)
+//  LAYOUT 6: MİNİMALİST
 // ════════════════════════════════════
 function minimal(){
   fCanvas.setBackgroundColor('#0c0c0c',fCanvas.renderAll.bind(fCanvas));
   fCanvas.add(
-    mkR({left:50,top:50,width:CW-100,height:CH-100,stroke:'#2a2a2a',strokeWidth:1}),
-    new fabric.Rect({left:50,top:50,width:5,height:CH-100,fill:'#fff',selectable:false,evented:false}),
-    mkL(100,238,CW-100,238,{stroke:'#fff',strokeWidth:.4,opacity:.12}),
+    mkR({left:50,top:50,width:CW-100,height:CH-100,stroke:'#2a2a2a',strokeWidth:1,name:'mainBorder'}),
+    new fabric.Rect({left:50,top:50,width:5,height:CH-100,fill:'#fff',name:'accent'}),
+    mkL(100,238,CW-100,238,{stroke:'#fff',strokeWidth:.4,opacity:.12,name:'div1'}),
     mkT('CERTIFICATE',{left:118,top:98,fontSize:10,
       fontFamily:'JetBrains Mono',fontWeight:'400',fill:'#fff',opacity:.18,
-      letterSpacing:6,originX:'left',selectable:false,evented:false,name:'dLabel'}),
+      letterSpacing:6,originX:'left',name:'certLabel'}),
     mkT('BAŞARILI TAMAMLAMA',{left:118,top:143,fontSize:13,
       fontFamily:'Inter',fontWeight:'300',fill:'#fff',opacity:.35,
       letterSpacing:4,originX:'left',name:'layerTitle'}),
@@ -730,13 +790,13 @@ function minimal(){
     mkT('Cyber Workshop',{left:118,top:442,fontSize:22,
       fontFamily:'Inter',fontWeight:'300',fill:'#fff',opacity:.45,
       originX:'left',name:'layerEvent'}),
-    mkL(100,495,CW-100,495,{stroke:'#fff',strokeWidth:.4,opacity:.1}),
+    mkL(100,495,CW-100,495,{stroke:'#fff',strokeWidth:.4,opacity:.1,name:'div2'}),
     mkT(today(),{left:118,top:514,fontSize:12,fontFamily:'JetBrains Mono',
       fill:'#fff',opacity:.18,originX:'left',name:'layerDate'}),
-    mkL(118,CH-100,418,CH-100,{stroke:'#fff',strokeWidth:.5,opacity:.25}),
+    mkL(118,CH-100,418,CH-100,{stroke:'#fff',strokeWidth:.5,opacity:.25,name:'sigLine'}),
     mkT('Yetkili İmza',{left:268,top:CH-88,fontSize:12,
       fontFamily:'Playfair Display',fontStyle:'italic',fill:'#fff',opacity:.22,
-      originX:'center',selectable:false,evented:false,name:'dSig'}),
+      originX:'center',name:'sigText'}),
     mkT('CERT_ID',{left:CW-70,top:CH-44,fontSize:11,
       fontFamily:'JetBrains Mono',fill:'#fff',opacity:.1,originX:'right',name:'layerID'}),
   );
@@ -751,6 +811,90 @@ function applyLayout(name,el){
   clearLayers();
   ({achievement,participation,training,sponsored,official,minimal})[name]();
   fCanvas.requestRenderAll();refreshLayers();
+}
+
+// ════════════════════════════════════
+//  COLOR PALETTE PRESETS
+// ════════════════════════════════════
+const COLOR_MAP={
+  gold:{primary:'#d4af37',secondary:'#b8860b',accent:'#fcd34d'},
+  blue:{primary:'#0ea5e9',secondary:'#0284c7',accent:'#7dd3fc'},
+  green:{primary:'#10b981',secondary:'#059669',accent:'#4ade80'},
+  purple:{primary:'#c084fc',secondary:'#7c3aed',accent:'#e879f9'},
+  indigo:{primary:'#6366f1',secondary:'#4338ca',accent:'#818cf8'},
+  red:{primary:'#ef4444',secondary:'#dc2626',accent:'#f87171'},
+  orange:{primary:'#f59e0b',secondary:'#d97706',accent:'#fbbf24'},
+  pink:{primary:'#ec4899',secondary:'#db2777',accent:'#f9a8d4'},
+  teal:{primary:'#14b8a6',secondary:'#0d9488',accent:'#5eead4'},
+  white:{primary:'#ffffff',secondary:'#e5e5e5',accent:'#d4d4d4'},
+};
+
+function applyColorPreset(preset){
+  const colors=COLOR_MAP[preset];
+  if(!colors)return;
+  
+  fCanvas.getObjects().forEach(obj=>{
+    // Çizgiler & çerçeveler
+    if(obj.stroke && obj.stroke!=='transparent'){
+      if(obj.stroke.includes('#'))obj.set({stroke:colors.primary});
+    }
+    // Yazılar (bazı vurgular accent renk alabilir)
+    if((obj.type==='i-text'||obj.type==='text')&&obj.fill&&obj.fill.includes('#')){
+      if(obj.name&&obj.name.includes('Title'))obj.set({fill:colors.primary});
+      else if(obj.name&&obj.name.includes('Event'))obj.set({fill:colors.accent});
+      else if(obj.opacity&&obj.opacity<0.8)obj.set({fill:colors.secondary});
+    }
+    // Daireler
+    if(obj.type==='circle'&&obj.stroke)obj.set({stroke:colors.primary});
+    // Dolgulu dikdörtgenler (accent bar'lar)
+    if(obj.type==='rect'&&obj.fill&&obj.fill!=='transparent'&&!obj.fill.includes('rgba')){
+      obj.set({fill:colors.primary});
+    }
+  });
+  
+  fCanvas.requestRenderAll();
+  document.querySelectorAll('.color-preset').forEach(p=>p.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// ════════════════════════════════════
+//  MANUAL COLOR CHANGE
+// ════════════════════════════════════
+function applyManualColor(){
+  const obj=fCanvas.getActiveObject();
+  if(!obj){alert('Önce canvas\'ta bir nesne seç!');return;}
+  const color=document.getElementById('manualColor').value;
+  
+  if(obj.type==='i-text'||obj.type==='text'){
+    obj.set({fill:color});
+  }else if(obj.stroke){
+    obj.set({stroke:color});
+  }else if(obj.fill){
+    obj.set({fill:color});
+  }
+  
+  fCanvas.requestRenderAll();
+}
+
+// ════════════════════════════════════
+//  BULK COLOR REPLACE
+// ════════════════════════════════════
+function bulkColorReplace(){
+  const oldC=document.getElementById('oldColorBulk').value.toLowerCase();
+  const newC=document.getElementById('newColorBulk').value;
+  let count=0;
+  
+  fCanvas.getObjects().forEach(obj=>{
+    if(obj.stroke&&obj.stroke.toLowerCase()===oldC){
+      obj.set({stroke:newC});count++;
+    }
+    if(obj.fill&&obj.fill.toLowerCase()===oldC){
+      obj.set({fill:newC});count++;
+    }
+  });
+  
+  fCanvas.requestRenderAll();
+  alert(`✓ ${count} nesne rengi değiştirildi!`);
 }
 
 // ════════════════════════════════════
