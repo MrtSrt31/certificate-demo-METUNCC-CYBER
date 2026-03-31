@@ -1,63 +1,40 @@
-let canvas=document.getElementById("canvas")
-let ctx=canvas.getContext("2d")
+// script.js içeriği
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
 
-function generate(){
+function generate() {
+    let name = document.getElementById("name").value;
+    let event = document.getElementById("event").value;
+    let date = document.getElementById("date").value;
+    let bgFile = document.getElementById("bgUpload").files[0];
 
-let name=document.getElementById("name").value
-let event=document.getElementById("event").value
-let date=document.getElementById("date").value
-let type=document.getElementById("type").value
-let signer=document.getElementById("signer").value
-
-let file=document.getElementById("bg").files[0]
-
-let img=new Image()
-
-img.onload=function(){
-
-ctx.drawImage(img,0,0,1600,900)
-
-ctx.fillStyle="white"
-
-ctx.font="70px Arial"
-ctx.fillText(name,500,400)
-
-ctx.font="40px Arial"
-ctx.fillText(event,500,500)
-
-ctx.fillText(date,500,580)
-
-ctx.fillText(type,500,650)
-
-ctx.fillText("Signed by "+signer,500,720)
-
-let id="MC-"+Math.floor(Math.random()*100000)
-
-let verifyURL=window.location.origin+"/certificate.html?id="+id
-
-QRCode.toCanvas(canvas,verifyURL,{width:120},function(err,qr){
-
-ctx.drawImage(qr,1400,720)
-
-ctx.font="20px Arial"
-ctx.fillText(id,100,850)
-
-})
-
-}
-
-img.src=URL.createObjectURL(file)
-
-}
-
-function download(){
-
-let link=document.createElement("a")
-
-link.download="certificate.png"
-
-link.href=canvas.toDataURL()
-
-link.click()
-
+    let reader = new FileReader();
+    reader.onload = function(eventImg) {
+        let img = new Image();
+        img.onload = function() {
+            ctx.drawImage(img, 0, 0, 1600, 900); // Arkaplanı çiz
+            
+            // Yazı Ayarları (Cyber Tasarım)
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 60px Arial";
+            ctx.textAlign = "center";
+            
+            ctx.fillText(name, 800, 450); // İsim tam ortaya
+            ctx.font = "40px Arial";
+            ctx.fillText(event, 800, 550); // Etkinlik altına
+            
+            // QR Kod Oluşturma (Doğrulama Linki İçin)
+            let certID = "MC-" + Math.floor(Math.random() * 10000);
+            let verifyURL = window.location.origin + "/index.html?id=" + certID;
+            
+            QRCode.toCanvas(verifyURL, { width: 150 }, function (err, qrCanvas) {
+                ctx.drawImage(qrCanvas, 1400, 700); // QR sağ alta
+                
+                // Final görseli göster
+                document.getElementById("finalImage").src = canvas.toDataURL("image/png");
+            });
+        }
+        img.src = eventImg.target.result;
+    }
+    reader.readAsDataURL(bgFile);
 }
