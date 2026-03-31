@@ -99,7 +99,7 @@ LinkedIn'e Ekle
 </div>
 
 <div class="mt-12 opacity-30 hover:opacity-100 transition">
-<a href="admin.html" class="text-xs uppercase tracking-widest">
+<a href="admin.php" class="text-xs uppercase tracking-widest">
 Yönetim Paneli Girişi
 </a>
 </div>
