@@ -1,27 +1,50 @@
-<script>
-    function create() {
-        let name = document.getElementById("name").value;
-        let event = document.getElementById("event").value;
-        let date = document.getElementById("date").value;
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>METU NCC Cyber | Certificate Verification</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="card">
+        <div class="logo-area">
+            <h2>METU NCC CYBER</h2>
+        </div>
+        <h1>Sertifika Doğrulama Sistemi</h1>
+        <p>Sertifika üzerindeki ID'yi girerek geçerliliğini kontrol edebilirsiniz.</p>
+        
+        <div class="input-group">
+            <input type="text" id="certIdInput" placeholder="Örn: MC-12345">
+            <button onclick="verify()">Sertifikayı Sorgula</button>
+        </div>
 
-        if(!name || !event || !date) {
-            alert("Please fill all fields!");
-            return;
+        <div id="verifyResult" style="display:none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #30363d;">
+            <h3 id="resName" style="color: #58a6ff;"></h3>
+            <p id="resEvent"></p>
+            <p id="resDate" style="font-size: 0.9rem; opacity: 0.7;"></p>
+            <div id="linkedInArea"></div>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <a href="admin.html" style="color: #8b949e; text-decoration: none; font-size: 0.8rem;">→ Yönetici Girişi</a>
+        </div>
+    </div>
+
+    <script>
+        function verify() {
+            const id = document.getElementById('certIdInput').value;
+            if(!id) return alert("Lütfen bir ID girin.");
+            
+            // Demo olduğu için simüle ediyoruz
+            document.getElementById('verifyResult').style.display = 'block';
+            document.getElementById('resName').innerText = "Sayın Katılımcı";
+            document.getElementById('resEvent').innerText = "Siber Güvenlik Eğitimi";
+            document.getElementById('resDate').innerText = "Tarih: 31.03.2026";
+            
+            const linkedInUrl = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=Cyber%20Security%20Workshop&organizationName=METU%20NCC%20Cyber&credentialId=${id}`;
+            document.getElementById('linkedInArea').innerHTML = `<button onclick="window.open('${linkedInUrl}', '_blank')" style="background:#0a66c2; margin-top:15px;">LinkedIn'e Ekle</button>`;
         }
-
-        let id = "MC-" + Math.floor(Math.random() * 100000);
-
-        // Bilgileri URL parametresi olarak gönderir
-        window.location.href = 
-            "certificate.html?name=" + encodeURIComponent(name) + 
-            "&event=" + encodeURIComponent(event) + 
-            "&date=" + date + 
-            "&id=" + id;
-    }
-
-    // --- LinkedIn Fonksiyonu ---
-    function addToLinkedIn(name, event, id) {
-        let url = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(event)}&organizationName=METU%20NCC%20Cyber&credentialId=${id}&credentialUrl=${window.location.href}`;
-        window.open(url, '_blank');
-    }
-</script>
+    </script>
+</body>
+</html>
