@@ -27,12 +27,6 @@ body{
     overflow:hidden;
 }
 
-.cyber-card{
-    background:#161b22;
-    border:1px solid #30363d;
-    border-radius:12px;
-}
-
 .cyber-input{
     background:#0d1117;
     border:1px solid #30363d;
@@ -94,19 +88,29 @@ body{
 }
 .btn-dim:hover{background:#10b981;color:#000;}
 
-#canvas-wrapper{
+#mainArea{
+    flex:1;
     display:flex;
     align-items:center;
     justify-content:center;
-    width:100%;
-    height:100%;
-    position:relative;
+    padding:24px;
+    overflow:hidden;
+    min-width:0;
 }
 
-/* Snap guide lines */
-.canvas-container{position:relative;}
+#canvas-wrapper{
+    position:relative;
+    /* boyut JS tarafından ayarlanır */
+    flex-shrink:0;
+}
 
-/* QR preview box */
+#guideOverlay{
+    position:absolute;
+    top:0;left:0;
+    pointer-events:none;
+    z-index:999;
+}
+
 #qrPreviewBox{
     background:#0d1117;
     border:1px solid #30363d;
@@ -116,29 +120,13 @@ body{
     align-items:center;
     gap:10px;
 }
-#qrPreviewImg{
-    width:60px;
-    height:60px;
-    border-radius:4px;
-    image-rendering:pixelated;
-    background:#000;
-}
 
-/* Object properties panel */
 #propPanel{
     background:#0d1117;
     border:1px solid #30363d;
     border-radius:8px;
     padding:10px;
     font-size:10px;
-}
-
-/* Center guide overlay */
-#guideOverlay{
-    position:absolute;
-    top:0;left:0;
-    pointer-events:none;
-    z-index:999;
 }
 
 .tab-btn{
@@ -165,10 +153,16 @@ body{
     border:1px solid #30363d;cursor:pointer;
     padding:0;background:transparent;
 }
+
+/* Fabric canvas element'in kendisi inline block olarak gelir,
+   wrapper ile tam örtüşmesi için: */
+#canvas-wrapper canvas{
+    display:block;
+}
 </style>
 </head>
 
-<body class="flex overflow-hidden">
+<body class="flex" style="height:100vh;overflow:hidden;">
 
 <!-- ═══════════════ SIDEBAR ═══════════════ -->
 <div class="w-96 sidebar p-5 flex flex-col shrink-0 gap-5">
@@ -197,7 +191,6 @@ body{
 
         <hr class="border-gray-800">
 
-        <!-- Yazı Ekle -->
         <div>
             <span class="section-title">Yazı Ekle</span>
             <div class="flex gap-2 mb-2">
@@ -212,7 +205,6 @@ body{
 
         <hr class="border-gray-800">
 
-        <!-- Resim Ekle -->
         <div>
             <span class="section-title">Resim / Logo Ekle</span>
             <input type="file" id="imgInput" accept="image/*" class="text-[10px] text-gray-400 mb-2 block">
@@ -221,7 +213,6 @@ body{
 
         <hr class="border-gray-800">
 
-        <!-- QR Ayarları -->
         <div>
             <span class="section-title">QR Kodu</span>
             <input id="qrUrl" class="cyber-input mb-2" placeholder="https://verify.example.com/?id=">
@@ -237,7 +228,6 @@ body{
 
         <hr class="border-gray-800">
 
-        <!-- Seçili Nesne Özellikleri -->
         <div id="propPanel">
             <span class="section-title" style="color:#10b981;">Seçili Nesne</span>
             <div id="propContent" class="text-gray-500 text-[10px]">Bir nesneye tıkla…</div>
@@ -292,11 +282,10 @@ body{
 </div>
 
 <!-- ═══════════════ CANVAS AREA ═══════════════ -->
-<div class="flex-1 flex items-center justify-center p-8 relative" id="mainArea">
-    <div id="canvas-wrapper" class="shadow-2xl relative">
-        <!-- Center guides overlay -->
+<div id="mainArea">
+    <div id="canvas-wrapper" style="box-shadow:0 0 0 1px #30363d;">
         <canvas id="fCanvas"></canvas>
-        <svg id="guideOverlay" width="100%" height="100%" style="display:none;position:absolute;top:0;left:0;pointer-events:none;">
+        <svg id="guideOverlay" style="display:none;">
             <line id="guideH" x1="0" y1="50%" x2="100%" y2="50%" stroke="#10b981" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.8"/>
             <line id="guideV" x1="50%" y1="0" x2="50%" y2="100%" stroke="#10b981" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.8"/>
         </svg>
@@ -304,48 +293,72 @@ body{
 </div>
 
 <script>
+// ── Sabitler ─────────────────────────────────────────────────
+const CANVAS_W = 1600;
+const CANVAS_H = 900;
+const CANVAS_RATIO = CANVAS_W / CANVAS_H; // 16/9
+
 // ── Canvas Init ──────────────────────────────────────────────
-const fCanvas = new fabric.Canvas('fCanvas',{
-    width:1600,
-    height:900,
-    backgroundColor:'#161b22',
-    preserveObjectStacking:true,
-    stopContextMenu:true,
-    fireRightClick:true,
+const fCanvas = new fabric.Canvas('fCanvas', {
+    width: CANVAS_W,
+    height: CANVAS_H,
+    backgroundColor: '#161b22',
+    preserveObjectStacking: true,
+    stopContextMenu: true,
+    fireRightClick: true,
 });
 
 let currentQRDataURL = null;
 let qrObjectOnCanvas = null;
 
-// ── Resize ───────────────────────────────────────────────────
-function resize(){
-    const wrapper = document.getElementById("canvas-wrapper");
-    const area = document.getElementById("mainArea");
-    const maxW = area.clientWidth - 64;
-    const maxH = area.clientHeight - 64;
-    const scale = Math.min(maxW/1600, maxH/900);
-    fCanvas.setDimensions({width:1600*scale, height:900*scale});
-    fCanvas.setViewportTransform([scale,0,0,scale,0,0]);
+// ── Resize — canvas'ı mevcut alana tam sığdır ────────────────
+function resize() {
+    const area    = document.getElementById('mainArea');
+    const padding = 48; // her yönde 24px boşluk
+    const availW  = area.clientWidth  - padding;
+    const availH  = area.clientHeight - padding;
+
+    // Aspect ratio'yu koruyarak her iki eksende de sığacak scale
+    const scale = Math.min(availW / CANVAS_W, availH / CANVAS_H);
+
+    const displayW = Math.floor(CANVAS_W * scale);
+    const displayH = Math.floor(CANVAS_H * scale);
+
+    // Fabric canvas'ın ekrandaki piksel boyutunu güncelle
+    fCanvas.setDimensions({ width: displayW, height: displayH });
+
+    // İç koordinat sistemi hâlâ 1600×900 kalır — sadece görsel ölçek değişir
+    fCanvas.setViewportTransform([scale, 0, 0, scale, 0, 0]);
     fCanvas.renderAll();
-    // Update guide overlay size
+
+    // Wrapper boyutunu da güncelle (SVG overlay için)
+    const wrapper = document.getElementById('canvas-wrapper');
+    wrapper.style.width  = displayW + 'px';
+    wrapper.style.height = displayH + 'px';
+
+    // SVG overlay boyutu
     const ov = document.getElementById('guideOverlay');
-    ov.setAttribute('width', 1600*scale);
-    ov.setAttribute('height', 900*scale);
+    ov.setAttribute('width',  displayW);
+    ov.setAttribute('height', displayH);
+    ov.style.width  = displayW + 'px';
+    ov.style.height = displayH + 'px';
 }
-window.addEventListener("resize", resize);
-setTimeout(resize, 200);
+
+window.addEventListener('resize', resize);
+// Fabric yüklendikten sonra bir tick bekle, sonra boyutlandır
+setTimeout(resize, 100);
 
 // ── Tab system ───────────────────────────────────────────────
-function switchTab(name, btn){
-    ['design','layers','bulk'].forEach(t=>{
+function switchTab(name, btn) {
+    ['design','layers','bulk'].forEach(t => {
         document.getElementById('tab-'+t).classList.add('hidden');
         document.getElementById('tab-'+t).classList.remove('flex');
     });
     document.getElementById('tab-'+name).classList.remove('hidden');
     document.getElementById('tab-'+name).classList.add('flex');
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    if(name==='layers') refreshLayers();
+    if (name === 'layers') refreshLayers();
 }
 
 // ── Background ───────────────────────────────────────────────
@@ -354,19 +367,15 @@ document.getElementById('bgInput').onchange = e => {
     reader.onload = f => {
         fabric.Image.fromURL(f.target.result, img => {
             img.selectable = false;
-            img.evented = false;
-            // Cover mantığı: en-boy oranını koruyarak tüm canvas'ı kapla
-            const canvasW = 1600, canvasH = 900;
-            const imgW = img.width, imgH = img.height;
-            const scaleX = canvasW / imgW;
-            const scaleY = canvasH / imgH;
-            const scale  = Math.max(scaleX, scaleY); // cover = büyük olan scale
+            img.evented    = false;
+            const scaleX = CANVAS_W / img.width;
+            const scaleY = CANVAS_H / img.height;
+            const scale  = Math.max(scaleX, scaleY); // cover
             img.set({
                 scaleX: scale,
                 scaleY: scale,
-                // Ortala (cover taşma durumunda)
-                left: (canvasW - imgW * scale) / 2,
-                top:  (canvasH - imgH * scale) / 2,
+                left: (CANVAS_W - img.width  * scale) / 2,
+                top:  (CANVAS_H - img.height * scale) / 2,
             });
             fCanvas.setBackgroundImage(img, fCanvas.renderAll.bind(fCanvas));
         });
@@ -374,31 +383,31 @@ document.getElementById('bgInput').onchange = e => {
     reader.readAsDataURL(e.target.files[0]);
 };
 
-// ── Clear content layers ─────────────────────────────────────
-function clearLayers(){
+// ── Clear layers ─────────────────────────────────────────────
+function clearLayers() {
     fCanvas.getObjects().forEach(o => fCanvas.remove(o));
     qrObjectOnCanvas = null;
 }
 
 // ── Default Layout ───────────────────────────────────────────
-function setupLayout(){
+function setupLayout() {
     clearLayers();
 
-    const nameLayer = new fabric.IText("KATILIMCI ADI",{
-        left:800, top:430,
-        fontSize:85, fontFamily:'Inter', fontWeight:'800',
-        fill:'#ffffff', originX:'center', name:'layerName',
+    const nameLayer = new fabric.IText("KATILIMCI ADI", {
+        left: 800, top: 430,
+        fontSize: 85, fontFamily: 'Inter', fontWeight: '800',
+        fill: '#ffffff', originX: 'center', name: 'layerName',
     });
-    const eventLayer = new fabric.IText(document.getElementById('eventTag').value.toUpperCase(),{
-        left:800, top:540,
-        fontSize:40, fontFamily:'Inter', fontWeight:'700',
-        fill:'#10b981', originX:'center', name:'layerEvent',
+    const eventLayer = new fabric.IText(document.getElementById('eventTag').value.toUpperCase(), {
+        left: 800, top: 540,
+        fontSize: 40, fontFamily: 'Inter', fontWeight: '700',
+        fill: '#10b981', originX: 'center', name: 'layerEvent',
     });
-    const idLayer = new fabric.IText("CERT_ID",{
-        left:1560, top:875,
-        fontSize:14, fontFamily:'JetBrains Mono',
-        fill:'#ffffff', opacity:0.3,
-        originX:'right', name:'layerID',
+    const idLayer = new fabric.IText("CERT_ID", {
+        left: 1560, top: 875,
+        fontSize: 14, fontFamily: 'JetBrains Mono',
+        fill: '#ffffff', opacity: 0.3,
+        originX: 'right', name: 'layerID',
     });
 
     fCanvas.add(nameLayer, eventLayer, idLayer);
@@ -408,16 +417,15 @@ function setupLayout(){
 }
 
 // ── Add Custom Text ──────────────────────────────────────────
-function addCustomText(){
+function addCustomText() {
     const val   = document.getElementById('addTextVal').value || 'Yeni Metin';
     const size  = parseInt(document.getElementById('addTextSize').value) || 60;
     const color = document.getElementById('addTextColor').value;
-
-    const t = new fabric.IText(val,{
-        left:800, top:450,
-        fontSize:size, fontFamily:'Inter', fontWeight:'700',
-        fill:color, originX:'center',
-        name:'customText_'+Date.now(),
+    const t = new fabric.IText(val, {
+        left: 800, top: 450,
+        fontSize: size, fontFamily: 'Inter', fontWeight: '700',
+        fill: color, originX: 'center',
+        name: 'customText_' + Date.now(),
     });
     fCanvas.add(t);
     fCanvas.setActiveObject(t);
@@ -426,16 +434,16 @@ function addCustomText(){
 }
 
 // ── Add Custom Image ─────────────────────────────────────────
-function addCustomImage(){
+function addCustomImage() {
     const file = document.getElementById('imgInput').files[0];
-    if(!file){ alert('Önce bir resim seç.'); return; }
+    if (!file) { alert('Önce bir resim seç.'); return; }
     const reader = new FileReader();
     reader.onload = f => {
         fabric.Image.fromURL(f.target.result, img => {
             img.set({
-                left:400, top:300,
-                scaleX:0.3, scaleY:0.3,
-                name:'customImg_'+Date.now(),
+                left: 400, top: 300,
+                scaleX: 0.3, scaleY: 0.3,
+                name: 'customImg_' + Date.now(),
             });
             fCanvas.add(img);
             fCanvas.setActiveObject(img);
@@ -446,59 +454,52 @@ function addCustomImage(){
     reader.readAsDataURL(file);
 }
 
-// ── QR Generate & Preview ────────────────────────────────────
-async function generateQR(url, size=140){
-    return new Promise(resolve=>{
-        const c = document.createElement("canvas");
-        QRCode.toCanvas(c, url||'https://example.com', {
-            width:size, margin:1,
-            color:{dark:'#ffffff', light:'#00000000'}
-        }, ()=>resolve(c.toDataURL()));
+// ── QR Generate ──────────────────────────────────────────────
+async function generateQR(url, size = 140) {
+    return new Promise(resolve => {
+        const c = document.createElement('canvas');
+        QRCode.toCanvas(c, url || 'https://example.com', {
+            width: size, margin: 1,
+            color: { dark: '#ffffff', light: '#00000000' }
+        }, () => resolve(c.toDataURL()));
     });
 }
 
-// Live preview as user types
-document.getElementById('qrUrl').addEventListener('input', async function(){
-    if(!this.value) return;
+document.getElementById('qrUrl').addEventListener('input', async function () {
+    if (!this.value) return;
     const dataURL = await generateQR(this.value, 60);
     const previewCanvas = document.getElementById('qrPreviewCanvas');
     const ctx = previewCanvas.getContext('2d');
     const img = new Image();
-    img.onload = ()=>{
-        ctx.clearRect(0,0,60,60);
-        ctx.fillStyle='#000';
-        ctx.fillRect(0,0,60,60);
-        ctx.drawImage(img,0,0,60,60);
+    img.onload = () => {
+        ctx.clearRect(0, 0, 60, 60);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, 60, 60);
+        ctx.drawImage(img, 0, 0, 60, 60);
     };
     img.src = dataURL;
-    document.getElementById('qrStatus').textContent = 'QR hazır — Canvas\'a ekle butonuna bas';
+    document.getElementById('qrStatus').textContent = "QR hazır — Canvas'a ekle butonuna bas";
     currentQRDataURL = await generateQR(this.value, 140);
 });
 
 // ── Add QR to Canvas ─────────────────────────────────────────
-async function addQRToCanvas(url, forBulk=false){
-    const qrUrl = url || document.getElementById('qrUrl').value || 'https://example.com';
+async function addQRToCanvas(url, forBulk = false) {
+    const qrUrl  = url || document.getElementById('qrUrl').value || 'https://example.com';
     const dataURL = await generateQR(qrUrl, 140);
-
-    return new Promise(resolve=>{
-        // Remove old QR if exists
-        if(qrObjectOnCanvas){ fCanvas.remove(qrObjectOnCanvas); qrObjectOnCanvas=null; }
-
-        fabric.Image.fromURL(dataURL, img=>{
+    return new Promise(resolve => {
+        if (qrObjectOnCanvas) { fCanvas.remove(qrObjectOnCanvas); qrObjectOnCanvas = null; }
+        fabric.Image.fromURL(dataURL, img => {
             img.set({
-                left: 1380,
-                top:  700,
-                scaleX:1,
-                scaleY:1,
-                name:'layerQR',
-                hasControls:true,
-                hasBorders:true,
+                left: 1380, top: 700,
+                scaleX: 1, scaleY: 1,
+                name: 'layerQR',
+                hasControls: true, hasBorders: true,
             });
             fCanvas.add(img);
             qrObjectOnCanvas = img;
-            if(!forBulk){
+            if (!forBulk) {
                 fCanvas.setActiveObject(img);
-                document.getElementById('qrStatus').textContent = '✓ Canvas\'a eklendi — sürükle & konumlandır';
+                document.getElementById('qrStatus').textContent = "✓ Canvas'a eklendi — sürükle & konumlandır";
             }
             fCanvas.requestRenderAll();
             refreshLayers();
@@ -508,73 +509,64 @@ async function addQRToCanvas(url, forBulk=false){
 }
 
 // ── Snap / Center guides ─────────────────────────────────────
-const SNAP_THRESHOLD = 12; // px on 1600 canvas
+const SNAP_THRESHOLD = 12;
 
-fCanvas.on('object:moving', function(e){
-    const obj = e.target;
-    const canvasW = 1600, canvasH = 900;
-    const centerX = canvasW/2, centerY = canvasH/2;
-
-    let objCX = obj.getCenterPoint().x;
-    let objCY = obj.getCenterPoint().y;
+fCanvas.on('object:moving', function (e) {
+    const obj     = e.target;
+    const centerX = CANVAS_W / 2;
+    const centerY = CANVAS_H / 2;
+    const objCX   = obj.getCenterPoint().x;
+    const objCY   = obj.getCenterPoint().y;
 
     const overlay = document.getElementById('guideOverlay');
-    const lineH = document.getElementById('guideH');
-    const lineV = document.getElementById('guideV');
+    const lineH   = document.getElementById('guideH');
+    const lineV   = document.getElementById('guideV');
 
     let snappedH = false, snappedV = false;
 
-    // Snap X to center
-    if(Math.abs(objCX - centerX) < SNAP_THRESHOLD){
-        obj.set({left: centerX - obj.getScaledWidth()/2 + (obj.originX==='center'? obj.getScaledWidth()/2 : 0)});
-        if(obj.originX==='center') obj.set({left: centerX});
+    if (Math.abs(objCX - centerX) < SNAP_THRESHOLD) {
+        if (obj.originX === 'center') obj.set({ left: centerX });
+        else obj.set({ left: centerX - obj.getScaledWidth() / 2 });
         snappedV = true;
     }
-    // Snap Y to center
-    if(Math.abs(objCY - centerY) < SNAP_THRESHOLD){
-        if(obj.originY==='center') obj.set({top: centerY});
+    if (Math.abs(objCY - centerY) < SNAP_THRESHOLD) {
+        if (obj.originY === 'center') obj.set({ top: centerY });
+        else obj.set({ top: centerY - obj.getScaledHeight() / 2 });
         snappedH = true;
     }
 
-    // Show/hide guide lines
-    overlay.style.display = (snappedH||snappedV)?'block':'none';
-    lineH.style.display = snappedH?'block':'none';
-    lineV.style.display = snappedV?'block':'none';
+    overlay.style.display = (snappedH || snappedV) ? 'block' : 'none';
+    lineH.style.display   = snappedH ? 'block' : 'none';
+    lineV.style.display   = snappedV ? 'block' : 'none';
 
     fCanvas.requestRenderAll();
     updatePropPanel(obj);
 });
 
-fCanvas.on('object:modified', ()=>{
-    document.getElementById('guideOverlay').style.display='none';
-});
-
-fCanvas.on('mouse:up', ()=>{
-    document.getElementById('guideOverlay').style.display='none';
-    refreshLayers();
-});
+fCanvas.on('object:modified', () => { document.getElementById('guideOverlay').style.display = 'none'; });
+fCanvas.on('mouse:up', () => { document.getElementById('guideOverlay').style.display = 'none'; refreshLayers(); });
 
 // ── Property Panel ───────────────────────────────────────────
-fCanvas.on('selection:created', e=>updatePropPanel(e.selected[0]));
-fCanvas.on('selection:updated', e=>updatePropPanel(e.selected[0]));
-fCanvas.on('selection:cleared', ()=>{
-    document.getElementById('propContent').innerHTML='<span class="text-gray-600">Bir nesneye tıkla…</span>';
+fCanvas.on('selection:created', e => updatePropPanel(e.selected[0]));
+fCanvas.on('selection:updated', e => updatePropPanel(e.selected[0]));
+fCanvas.on('selection:cleared', () => {
+    document.getElementById('propContent').innerHTML = '<span class="text-gray-600">Bir nesneye tıkla…</span>';
 });
-fCanvas.on('object:scaling', e=>updatePropPanel(e.target));
-fCanvas.on('object:rotating', e=>updatePropPanel(e.target));
+fCanvas.on('object:scaling', e => updatePropPanel(e.target));
+fCanvas.on('object:rotating', e => updatePropPanel(e.target));
 
-function updatePropPanel(obj){
-    if(!obj) return;
+function updatePropPanel(obj) {
+    if (!obj) return;
     const cx = Math.round(obj.getCenterPoint().x);
     const cy = Math.round(obj.getCenterPoint().y);
     const w  = Math.round(obj.getScaledWidth());
     const h  = Math.round(obj.getScaledHeight());
-    const r  = Math.round(obj.angle||0);
-    const isText = obj.type==='i-text'||obj.type==='text';
+    const r  = Math.round(obj.angle || 0);
+    const isText = obj.type === 'i-text' || obj.type === 'text';
 
     let html = `
     <div class="grid grid-cols-2 gap-1 text-[10px]">
-        <div><span class="text-gray-600">Ad:</span> <span class="text-white">${obj.name||'—'}</span></div>
+        <div><span class="text-gray-600">Ad:</span> <span class="text-white">${obj.name || '—'}</span></div>
         <div><span class="text-gray-600">Tür:</span> <span class="text-emerald-400">${obj.type}</span></div>
         <div><span class="text-gray-600">X:</span> <span class="text-white">${cx}px</span></div>
         <div><span class="text-gray-600">Y:</span> <span class="text-white">${cy}px</span></div>
@@ -583,17 +575,13 @@ function updatePropPanel(obj){
         <div><span class="text-gray-600">Açı:</span> <span class="text-white">${r}°</span></div>
     </div>`;
 
-    if(isText){
+    if (isText) {
         html += `
         <div class="mt-2 flex gap-2 items-center">
             <label class="text-gray-600 text-[9px]">Renk</label>
-            <input type="color" value="${obj.fill||'#ffffff'}"
-                class="color-pick w-7 h-7"
-                onchange="changeSelectedColor(this.value)">
+            <input type="color" value="${obj.fill || '#ffffff'}" class="color-pick w-7 h-7" onchange="changeSelectedColor(this.value)">
             <label class="text-gray-600 text-[9px] ml-2">Boyut</label>
-            <input type="number" value="${Math.round(obj.fontSize)}"
-                class="cyber-input w-16"
-                onchange="changeSelectedSize(this.value)">
+            <input type="number" value="${Math.round(obj.fontSize)}" class="cyber-input w-16" onchange="changeSelectedSize(this.value)">
         </div>`;
     }
 
@@ -607,77 +595,66 @@ function updatePropPanel(obj){
     document.getElementById('propContent').innerHTML = html;
 }
 
-function changeSelectedColor(v){
-    const o = fCanvas.getActiveObject();
-    if(o){ o.set({fill:v}); fCanvas.requestRenderAll(); }
-}
-function changeSelectedSize(v){
-    const o = fCanvas.getActiveObject();
-    if(o){ o.set({fontSize:parseInt(v)}); fCanvas.requestRenderAll(); }
-}
-function centerSelectedH(){
-    const o = fCanvas.getActiveObject();
-    if(!o) return;
-    if(o.originX==='center') o.set({left:800});
-    else o.set({left: 800 - o.getScaledWidth()/2});
+function changeSelectedColor(v) { const o = fCanvas.getActiveObject(); if (o) { o.set({ fill: v }); fCanvas.requestRenderAll(); } }
+function changeSelectedSize(v)  { const o = fCanvas.getActiveObject(); if (o) { o.set({ fontSize: parseInt(v) }); fCanvas.requestRenderAll(); } }
+
+function centerSelectedH() {
+    const o = fCanvas.getActiveObject(); if (!o) return;
+    o.set({ left: o.originX === 'center' ? CANVAS_W / 2 : CANVAS_W / 2 - o.getScaledWidth() / 2 });
     fCanvas.requestRenderAll();
 }
-function centerSelectedV(){
-    const o = fCanvas.getActiveObject();
-    if(!o) return;
-    if(o.originY==='center') o.set({top:450});
-    else o.set({top: 450 - o.getScaledHeight()/2});
+function centerSelectedV() {
+    const o = fCanvas.getActiveObject(); if (!o) return;
+    o.set({ top: o.originY === 'center' ? CANVAS_H / 2 : CANVAS_H / 2 - o.getScaledHeight() / 2 });
     fCanvas.requestRenderAll();
 }
-function deleteSelected(){
+function deleteSelected() {
     const o = fCanvas.getActiveObject();
-    if(o){ fCanvas.remove(o); fCanvas.requestRenderAll(); refreshLayers(); }
+    if (o) { fCanvas.remove(o); fCanvas.requestRenderAll(); refreshLayers(); }
 }
 
 // ── Layer List ───────────────────────────────────────────────
-function refreshLayers(){
+function refreshLayers() {
     const list = document.getElementById('layerList');
     const objs = fCanvas.getObjects().slice().reverse();
-    list.innerHTML = objs.length===0
+    list.innerHTML = objs.length === 0
         ? '<div class="text-gray-600">Henüz katman yok.</div>'
-        : objs.map((o,i)=>`
+        : objs.map((o, i) => `
             <div class="flex items-center gap-2 bg-gray-900 border border-gray-800 rounded px-2 py-1.5 cursor-pointer hover:border-emerald-900"
-                 onclick="selectLayer('${o.name||''}',${fCanvas.getObjects().length-1-i})">
-                <span class="text-[8px] text-gray-600">${fCanvas.getObjects().length-1-i}</span>
-                <span class="flex-1 text-[10px] truncate">${o.name||o.type}</span>
+                 onclick="selectLayer(${fCanvas.getObjects().length - 1 - i})">
+                <span class="text-[8px] text-gray-600">${fCanvas.getObjects().length - 1 - i}</span>
+                <span class="flex-1 text-[10px] truncate">${o.name || o.type}</span>
                 <span class="text-[8px] text-emerald-700">${o.type}</span>
             </div>`).join('');
 }
 
-function selectLayer(name,idx){
+function selectLayer(idx) {
     const obj = fCanvas.item(idx);
-    if(obj){fCanvas.setActiveObject(obj);fCanvas.requestRenderAll();updatePropPanel(obj);}
+    if (obj) { fCanvas.setActiveObject(obj); fCanvas.requestRenderAll(); updatePropPanel(obj); }
 }
 
 // ── Bulk Production ──────────────────────────────────────────
-async function startBulkProduction(){
+async function startBulkProduction() {
     const names = document.getElementById('bulkNames').value
-        .split('\n').map(n=>n.trim()).filter(n=>n.length>0);
-
-    if(names.length===0){ alert('Liste boş'); return; }
+        .split('\n').map(n => n.trim()).filter(n => n.length > 0);
+    if (names.length === 0) { alert('Liste boş'); return; }
 
     const prefix   = document.getElementById('prefix').value;
-    const startNum = parseInt(document.getElementById('startNum').value)||202600;
+    const startNum = parseInt(document.getElementById('startNum').value) || 202600;
     const eventTag = document.getElementById('eventTag').value;
 
-    const nameObj  = fCanvas.getObjects().find(o=>o.name==='layerName');
-    const idObj    = fCanvas.getObjects().find(o=>o.name==='layerID');
-    const eventObj = fCanvas.getObjects().find(o=>o.name==='layerEvent');
+    const nameObj  = fCanvas.getObjects().find(o => o.name === 'layerName');
+    const idObj    = fCanvas.getObjects().find(o => o.name === 'layerID');
+    const eventObj = fCanvas.getObjects().find(o => o.name === 'layerEvent');
 
-    // Store current QR position (from canvas if exists)
-    let qrLeft=1380, qrTop=700, qrSX=1, qrSY=1;
-    if(qrObjectOnCanvas){
+    let qrLeft = 1380, qrTop = 700, qrSX = 1, qrSY = 1;
+    if (qrObjectOnCanvas) {
         qrLeft = qrObjectOnCanvas.left;
         qrTop  = qrObjectOnCanvas.top;
         qrSX   = qrObjectOnCanvas.scaleX;
         qrSY   = qrObjectOnCanvas.scaleY;
         fCanvas.remove(qrObjectOnCanvas);
-        qrObjectOnCanvas=null;
+        qrObjectOnCanvas = null;
     }
 
     const progress = document.getElementById('bulkProgress');
@@ -685,29 +662,27 @@ async function startBulkProduction(){
     const progBar  = document.getElementById('bulkProgressBar');
     progress.classList.remove('hidden');
 
-    for(let i=0;i<names.length;i++){
+    for (let i = 0; i < names.length; i++) {
         const name   = names[i];
-        const certID = `${prefix}-${startNum+i}`;
-        const qrUrl  = (document.getElementById('qrUrl').value||window.location.origin+'/index.php')+'?id='+certID;
+        const certID = `${prefix}-${startNum + i}`;
+        const qrUrl  = (document.getElementById('qrUrl').value || window.location.origin + '/index.php') + '?id=' + certID;
 
-        if(nameObj)  nameObj.text  = name.toUpperCase();
-        if(idObj)    idObj.text    = 'CERT_ID: '+certID;
-        if(eventObj) eventObj.text = eventTag.toUpperCase();
+        if (nameObj)  nameObj.text  = name.toUpperCase();
+        if (idObj)    idObj.text    = 'CERT_ID: ' + certID;
+        if (eventObj) eventObj.text = eventTag.toUpperCase();
         fCanvas.requestRenderAll();
 
-        // Generate QR for this cert
         const qrData = await generateQR(qrUrl, 140);
 
-        await new Promise(resolve=>{
-            fabric.Image.fromURL(qrData, qr=>{
-                qr.set({left:qrLeft, top:qrTop, scaleX:qrSX, scaleY:qrSY, selectable:false});
+        await new Promise(resolve => {
+            fabric.Image.fromURL(qrData, qr => {
+                qr.set({ left: qrLeft, top: qrTop, scaleX: qrSX, scaleY: qrSY, selectable: false });
                 fCanvas.add(qr);
                 fCanvas.requestRenderAll();
-
-                setTimeout(()=>{
-                    const link = document.createElement('a');
-                    link.download = `${certID}_${name.replace(/\s+/g,'_')}.png`;
-                    link.href = fCanvas.toDataURL({format:'png',quality:1,multiplier:1});
+                setTimeout(() => {
+                    const link   = document.createElement('a');
+                    link.download = `${certID}_${name.replace(/\s+/g, '_')}.png`;
+                    link.href     = fCanvas.toDataURL({ format: 'png', quality: 1, multiplier: 1 });
                     link.click();
                     fCanvas.remove(qr);
                     resolve();
@@ -715,29 +690,28 @@ async function startBulkProduction(){
             });
         });
 
-        const pct = Math.round(((i+1)/names.length)*100);
-        progBar.style.width = pct+'%';
-        progText.textContent = `${i+1}/${names.length} — ${name} ✓`;
-        await new Promise(r=>setTimeout(r,200));
+        const pct = Math.round(((i + 1) / names.length) * 100);
+        progBar.style.width    = pct + '%';
+        progText.textContent   = `${i + 1}/${names.length} — ${name} ✓`;
+        await new Promise(r => setTimeout(r, 200));
     }
 
     progText.textContent = `✅ ${names.length} sertifika başarıyla üretildi!`;
 
-    // Re-add QR back to canvas
-    if(document.getElementById('qrUrl').value){
-        const qrData = await generateQR(document.getElementById('qrUrl').value+'?id=PREVIEW', 140);
-        fabric.Image.fromURL(qrData, qr=>{
-            qr.set({left:qrLeft,top:qrTop,scaleX:qrSX,scaleY:qrSY,name:'layerQR'});
+    if (document.getElementById('qrUrl').value) {
+        const qrData = await generateQR(document.getElementById('qrUrl').value + '?id=PREVIEW', 140);
+        fabric.Image.fromURL(qrData, qr => {
+            qr.set({ left: qrLeft, top: qrTop, scaleX: qrSX, scaleY: qrSY, name: 'layerQR' });
             fCanvas.add(qr);
-            qrObjectOnCanvas=qr;
+            qrObjectOnCanvas = qr;
             fCanvas.requestRenderAll();
         });
     }
 }
 
-// ── Delete key support ───────────────────────────────────────
-document.addEventListener('keydown', e=>{
-    if((e.key==='Delete'||e.key==='Backspace') && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){
+// ── Delete key ───────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+    if ((e.key === 'Delete' || e.key === 'Backspace') && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) {
         deleteSelected();
     }
 });
