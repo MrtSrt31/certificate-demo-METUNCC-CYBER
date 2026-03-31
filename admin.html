@@ -1,182 +1,334 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <title>METU NCC Cyber | Production Command Center</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
-    <style>
-        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; background-image: radial-gradient(#1f2937 0.8px, transparent 0.8px); background-size: 30px 30px; }
-        .cyber-card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; }
-        .cyber-input { background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 4px; font-size: 12px; padding: 10px; width: 100%; }
-        .cyber-input:focus { border-color: #10b981; outline: none; }
-        .sidebar { height: 100vh; overflow-y: auto; border-right: 1px solid #30363d; background: rgba(13, 17, 23, 0.98); }
-    </style>
+<meta charset="UTF-8">
+<title>METU NCC Cyber | Production Command Center</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+background:#000;
+color:#fff;
+font-family:'Inter',sans-serif;
+background-image:radial-gradient(#1f2937 0.8px,transparent 0.8px);
+background-size:30px 30px;
+}
+
+.cyber-card{
+background:#161b22;
+border:1px solid #30363d;
+border-radius:12px;
+}
+
+.cyber-input{
+background:#0d1117;
+border:1px solid #30363d;
+color:white;
+border-radius:4px;
+font-size:12px;
+padding:10px;
+width:100%;
+}
+
+.cyber-input:focus{
+border-color:#10b981;
+outline:none;
+}
+
+.sidebar{
+height:100vh;
+overflow-y:auto;
+border-right:1px solid #30363d;
+background:rgba(13,17,23,0.98);
+}
+
+</style>
 </head>
+
 <body class="flex overflow-hidden">
 
-    <div class="w-96 sidebar p-6 flex flex-col shrink-0">
-        <div class="mb-6 border-b border-gray-800 pb-4">
-            <h1 class="text-[#10b981] font-black text-sm tracking-widest uppercase">Command Center v5.0</h1>
-            <p class="text-[10px] opacity-50 font-mono mt-1">OPERATOR: <span class="text-white">ADMIN DEMO</span></p>
-        </div>
+<div class="w-96 sidebar p-6 flex flex-col shrink-0">
 
-        <div class="space-y-6 flex-1">
-            <div>
-                <label class="text-[10px] font-bold text-gray-500 uppercase mb-2 block">1. Şablon Yükle (PNG)</label>
-                <input type="file" id="bgInput" class="text-[10px] text-gray-400">
-            </div>
+<div class="mb-6 border-b border-gray-800 pb-4">
+<h1 class="text-[#10b981] font-black text-sm tracking-widest uppercase">Command Center v5.0</h1>
+<p class="text-[10px] opacity-50 font-mono mt-1">OPERATOR: <span class="text-white">ADMIN DEMO</span></p>
+</div>
 
-            <div class="space-y-2">
-                <label class="text-[10px] font-bold text-gray-500 uppercase mb-2 block">2. Tasarım & Katmanlar</label>
-                <button onclick="setupLayout()" class="w-full bg-emerald-900/30 text-emerald-500 border border-emerald-900/50 text-[10px] py-3 rounded font-bold hover:bg-emerald-600 hover:text-black transition uppercase tracking-widest">Akıllı Tasarımı Başlat</button>
-            </div>
+<div class="space-y-6 flex-1">
 
-            <div class="pt-4 border-t border-gray-800">
-                <label class="text-[10px] font-bold text-gray-500 uppercase mb-2 block">3. Katılımcı Listesi (Her satıra bir isim)</label>
-                <textarea id="bulkNames" rows="6" class="cyber-input" placeholder="Mert Sert&#10;Ahmet Yılmaz&#10;Ayşe Demir"></textarea>
-            </div>
+<div>
+<label class="text-[10px] font-bold text-gray-500 uppercase mb-2 block">1. Şablon Yükle</label>
+<input type="file" id="bgInput" class="text-[10px] text-gray-400">
+</div>
 
-            <div class="pt-4 border-t border-gray-800">
-                <label class="text-[10px] font-bold text-gray-500 uppercase mb-2 block">4. Seri Üretim Ayarları</label>
-                <div class="grid grid-cols-2 gap-2 mb-4">
-                    <input type="text" id="prefix" value="MNCS" class="cyber-input text-center" placeholder="Prefix">
-                    <input type="text" id="eventTag" value="Cyber Workshop" class="cyber-input text-center" placeholder="Etkinlik">
-                </div>
-                <button onclick="startBulkProduction()" class="w-full bg-emerald-600 text-black font-black py-4 rounded-lg text-[11px] uppercase tracking-widest shadow-lg shadow-emerald-900/20">TÜMÜNÜ BAS VE İNDİR</button>
-            </div>
-        </div>
-    </div>
+<div>
+<button onclick="setupLayout()" class="w-full bg-emerald-900/30 text-emerald-500 border border-emerald-900/50 text-[10px] py-3 rounded font-bold hover:bg-emerald-600 hover:text-black transition uppercase tracking-widest">
+Akıllı Tasarımı Başlat
+</button>
+</div>
 
-    <div class="flex-1 flex flex-col items-center justify-center bg-black p-12 relative overflow-hidden">
-        <div class="absolute top-8 left-8 text-[10px] font-mono text-gray-700 uppercase tracking-widest">MNCS // PRODUCTION_LINE // NO_DRIFT_MODE</div>
-        <div id="canvas-wrapper" class="shadow-2xl">
-            <canvas id="fCanvas"></canvas>
-        </div>
-        <div class="mt-8 text-[10px] text-gray-600 font-mono tracking-[0.5em] uppercase">Mühürleme Önizlemesi Aktif</div>
-    </div>
+<div class="pt-4 border-t border-gray-800">
 
-    <script>
-        const fCanvas = new fabric.Canvas('fCanvas', {
-            width: 1600,
-            height: 900,
-            backgroundColor: '#161b22',
-            preserveObjectStacking: true
-        });
+<label class="text-[10px] font-bold text-gray-500 uppercase mb-2 block">Katılımcı Listesi</label>
 
-        let currentBgImage = null; // Arka plan resmini hafızada tutmak için
+<textarea id="bulkNames" rows="6" class="cyber-input"
+placeholder="Mert Sert
+Ahmet Yılmaz
+Ayşe Demir"></textarea>
 
-        // 1. Şablon Yükleme (DÜZELTİLDİ: Resmi değişkene atar)
-        document.getElementById('bgInput').onchange = (e) => {
-            const reader = new FileReader();
-            reader.onload = (f) => {
-                fabric.Image.fromURL(f.target.result, (img) => {
-                    currentBgImage = img;
-                    updateBackground();
-                });
-            };
-            reader.readAsDataURL(e.target.files[0]);
-        };
+</div>
 
-        function updateBackground() {
-            if (currentBgImage) {
-                fCanvas.setBackgroundImage(currentBgImage, fCanvas.renderAll.bind(fCanvas), {
-                    scaleX: 1600 / currentBgImage.width,
-                    scaleY: 900 / currentBgImage.height
-                });
-            }
-        }
+<div class="pt-4 border-t border-gray-800">
 
-        // 2. Akıllı Yerleşim (DÜZELTİLDİ: Resmi silmez, sadece yazıları yeniler)
-        function setupLayout() {
-            // Mevcut yazıları temizle ama arka planı elleme
-            const objects = fCanvas.getObjects();
-            while(objects.length > 0) {
-                fCanvas.remove(objects[0]);
-            }
+<label class="text-[10px] font-bold text-gray-500 uppercase mb-2 block">Seri Üretim</label>
 
-            const nameLayer = new fabric.IText("KATILIMCI ADI", {
-                left: 800, top: 430, fontSize: 85, fontFamily: 'Inter', fontWeight: '800', fill: '#ffffff', originX: 'center', name: 'layerName'
-            });
+<div class="grid grid-cols-2 gap-2 mb-4">
+<input id="prefix" value="MNCS" class="cyber-input text-center">
+<input id="eventTag" value="Cyber Workshop" class="cyber-input text-center">
+</div>
 
-            const eventLayer = new fabric.IText(document.getElementById('eventTag').value.toUpperCase(), {
-                left: 800, top: 540, fontSize: 40, fontFamily: 'Inter', fontWeight: '700', fill: '#10b981', originX: 'center', name: 'layerEvent'
-            });
+<button onclick="startBulkProduction()"
+class="w-full bg-emerald-600 text-black font-black py-4 rounded-lg text-[11px] uppercase tracking-widest">
 
-            const idLayer = new fabric.IText("CERT_ID: MNCS-0000", {
-                left: 1560, top: 875, fontSize: 14, fontFamily: 'JetBrains Mono', fill: '#ffffff', opacity: 0.3, originX: 'right', name: 'layerID'
-            });
+TÜMÜNÜ BAS VE İNDİR
 
-            fCanvas.add(nameLayer, eventLayer, idLayer);
-            
-            // Arka planı tekrar kontrol et ve render et
-            updateBackground();
-            
-            fCanvas.setActiveObject(nameLayer);
-            fCanvas.renderAll();
-        }
+</button>
 
-        // 3. Seri Üretim Motoru
-        async function startBulkProduction() {
-            const names = document.getElementById('bulkNames').value.split('\n').filter(n => n.trim() !== "");
-            if(names.length === 0) return alert("İsim Listesi Boş!");
-            
-            const prefix = document.getElementById('prefix').value;
-            const nameObj = fCanvas.getObjects().find(o => o.name === 'layerName');
-            const idObj = fCanvas.getObjects().find(o => o.name === 'layerID');
+</div>
 
-            for (let i = 0; i < names.length; i++) {
-                const name = names[i].trim();
-                const certID = prefix + "-" + (202600 + i);
-                
-                if(nameObj) nameObj.set('text', name.toUpperCase());
-                if(idObj) idObj.set('text', "CERT_ID: " + certID);
-                
-                const qrUrl = window.location.origin + "/index.html?id=" + certID;
-                const qrBlob = await generateQRBlob(qrUrl);
-                
-                await new Promise(resolve => {
-                    fabric.Image.fromURL(qrBlob, (qrImg) => {
-                        qrImg.set({ left: 1430, top: 730, scaleX: 0.8, scaleY: 0.8, name: 'tempQR' });
-                        fCanvas.add(qrImg);
-                        fCanvas.renderAll();
+</div>
+</div>
 
-                        const link = document.createElement('a');
-                        link.download = `${certID}_${name.replace(/\s/g, '_')}.png`;
-                        link.href = fCanvas.toDataURL({ format: 'png', quality: 1 });
-                        link.click();
+<div class="flex-1 flex items-center justify-center p-12">
 
-                        fCanvas.remove(qrImg);
-                        resolve();
-                    });
-                });
-                
-                await new Promise(r => setTimeout(r, 400));
-            }
-            alert(names.length + " Sertifika Hazırlandı!");
-        }
+<div id="canvas-wrapper" class="shadow-2xl">
+<canvas id="fCanvas"></canvas>
+</div>
 
-        function generateQRBlob(url) {
-            return new Promise(resolve => {
-                const tempCvs = document.createElement('canvas');
-                QRCode.toCanvas(tempCvs, url, { width: 140, margin: 2, color: { dark: '#ffffff', light: '#00000000' } }, () => {
-                    resolve(tempCvs.toDataURL());
-                });
-            });
-        }
+</div>
 
-        function resize() {
-            const wrapper = document.getElementById('canvas-wrapper');
-            if(!wrapper) return;
-            const scale = wrapper.clientWidth / 1600;
-            fCanvas.setZoom(scale);
-            fCanvas.setWidth(1600 * scale);
-            fCanvas.setHeight(900 * scale);
-        }
-        window.addEventListener('resize', resize);
-        setTimeout(resize, 500);
-    </script>
+<script>
+
+const fCanvas = new fabric.Canvas('fCanvas',{
+width:1600,
+height:900,
+backgroundColor:'#161b22',
+preserveObjectStacking:true
+});
+
+let currentBg=null;
+
+document.getElementById('bgInput').onchange=e=>{
+
+const reader=new FileReader();
+
+reader.onload=f=>{
+
+fabric.Image.fromURL(f.target.result,img=>{
+
+currentBg=img;
+
+img.selectable=false;
+
+img.evented=false;
+
+img.scaleToWidth(1600);
+img.scaleToHeight(900);
+
+fCanvas.backgroundImage=img;
+
+fCanvas.requestRenderAll();
+
+});
+
+};
+
+reader.readAsDataURL(e.target.files[0]);
+
+};
+
+function clearLayers(){
+
+const objs=[...fCanvas.getObjects()];
+
+objs.forEach(o=>fCanvas.remove(o));
+
+}
+
+function setupLayout(){
+
+clearLayers();
+
+const nameLayer=new fabric.IText("KATILIMCI ADI",{
+left:800,
+top:430,
+fontSize:85,
+fontFamily:'Inter',
+fontWeight:'800',
+fill:'#ffffff',
+originX:'center',
+name:'layerName'
+});
+
+const eventLayer=new fabric.IText(document.getElementById('eventTag').value.toUpperCase(),{
+left:800,
+top:540,
+fontSize:40,
+fontFamily:'Inter',
+fontWeight:'700',
+fill:'#10b981',
+originX:'center',
+name:'layerEvent'
+});
+
+const idLayer=new fabric.IText("CERT_ID",{
+left:1560,
+top:875,
+fontSize:14,
+fontFamily:'JetBrains Mono',
+fill:'#ffffff',
+opacity:0.3,
+originX:'right',
+name:'layerID'
+});
+
+fCanvas.add(nameLayer,eventLayer,idLayer);
+
+fCanvas.setActiveObject(nameLayer);
+
+fCanvas.requestRenderAll();
+
+}
+
+async function startBulkProduction(){
+
+const names=document.getElementById('bulkNames').value
+.split('\n')
+.map(n=>n.trim())
+.filter(n=>n.length>0);
+
+if(names.length===0){
+alert("Liste boş");
+return;
+}
+
+const prefix=document.getElementById('prefix').value;
+const eventTag=document.getElementById('eventTag').value;
+
+const nameObj=fCanvas.getObjects().find(o=>o.name==="layerName");
+const idObj=fCanvas.getObjects().find(o=>o.name==="layerID");
+const eventObj=fCanvas.getObjects().find(o=>o.name==="layerEvent");
+
+for(let i=0;i<names.length;i++){
+
+const name=names[i];
+
+const certID=`${prefix}-${202600+i}`;
+
+if(nameObj) nameObj.text=name.toUpperCase();
+if(idObj) idObj.text="CERT_ID: "+certID;
+if(eventObj) eventObj.text=eventTag.toUpperCase();
+
+fCanvas.requestRenderAll();
+
+const qrData=await generateQR(window.location.origin+"/verify?id="+certID);
+
+await new Promise(resolve=>{
+
+fabric.Image.fromURL(qrData,qr=>{
+
+qr.set({
+left:1430,
+top:730,
+scaleX:0.8,
+scaleY:0.8,
+selectable:false
+});
+
+fCanvas.add(qr);
+
+fCanvas.requestRenderAll();
+
+const link=document.createElement("a");
+
+link.download=`${certID}_${name.replace(/\s/g,'_')}.png`;
+
+link.href=fCanvas.toDataURL({
+format:"png",
+quality:1
+});
+
+link.click();
+
+fCanvas.remove(qr);
+
+resolve();
+
+});
+
+});
+
+await new Promise(r=>setTimeout(r,200));
+
+}
+
+alert(names.length+" sertifika üretildi");
+
+}
+
+function generateQR(url){
+
+return new Promise(resolve=>{
+
+const canvas=document.createElement("canvas");
+
+QRCode.toCanvas(canvas,url,{
+width:140,
+margin:2,
+color:{
+dark:'#ffffff',
+light:'#00000000'
+}
+},()=>{
+
+resolve(canvas.toDataURL());
+
+});
+
+});
+
+}
+
+function resize(){
+
+const wrapper=document.getElementById("canvas-wrapper");
+
+const scale=wrapper.clientWidth/1600;
+
+fCanvas.setDimensions({
+width:1600*scale,
+height:900*scale
+});
+
+fCanvas.setViewportTransform([
+scale,0,0,scale,0,0
+]);
+
+fCanvas.renderAll();
+
+}
+
+window.addEventListener("resize",resize);
+
+setTimeout(resize,300);
+
+</script>
+
 </body>
 </html>
