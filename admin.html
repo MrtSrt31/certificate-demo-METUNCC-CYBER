@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Certificate Generator</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<h1>Certificate Generator</h1>
+
+<input id="name" placeholder="Participant Name">
+
+<input id="event" placeholder="Event Name">
+
+<input id="date" type="date">
+
+<input id="type" placeholder="Certificate Type">
+
+<input id="signer" placeholder="Signer">
+
+<p>Upload Background</p>
+
+<input type="file" id="bg">
+
+<button onclick="generate()">Generate Certificate</button>
+
+<br>
+
+<canvas id="canvas" width="1600" height="900"></canvas>
+
+<button onclick="download()">Download PNG</button>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
