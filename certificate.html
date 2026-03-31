@@ -1,65 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
+    <meta charset="UTF-8">
+    <title>Certificate Verification</title>
+    <style>
+        body {
+            background: #0d1117;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
 
-<title>Certificate</title>
+        .card {
+            background: #161b22;
+            padding: 40px;
+            border-radius: 10px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
 
-<style>
+        h1 { color: #58a6ff; }
+        h2 { margin: 10px 0; color: #ffffff; }
+        #cid { color: #8b949e; font-family: monospace; }
+        
+        button {
+            background-color: #0a66c2; /* LinkedIn Mavisi */
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
 
-body{
-background:#0d1117;
-color:white;
-font-family:Arial;
-text-align:center;
-padding:50px;
-}
-
-.cert{
-background:#161b22;
-padding:40px;
-border-radius:10px;
-max-width:700px;
-margin:auto;
-}
-
-</style>
-
+        button:hover {
+            background-color: #004182;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="cert">
+<div class="card">
+    <h1>Certificate Verification</h1>
+    
+    <p id="cid">Certificate ID: Loading...</p>
 
-<h1>Certificate of Completion</h1>
+    <p>This certificate was issued to</p>
+    <h2 id="participantName">Participant Name</h2>
 
-<h2 id="name"></h2>
+    <p>for completing</p>
+    <h2 id="eventName">Event Name</h2>
 
-<p>has successfully completed</p>
+    <p>Issued by</p>
+    <h3>METU NCC Cyber</h3>
 
-<h3 id="event"></h3>
-
-<p>Date:</p>
-
-<p id="date"></p>
-
-<p>Certificate ID:</p>
-
-<p id="id"></p>
-
+    <a id="linkedin" target="_blank">
+        <button>Add to LinkedIn</button>
+    </a>
 </div>
 
 <script>
+    // URL'den parametreleri al
+    const params = new URLSearchParams(window.location.search);
+    
+    const name = params.get("name") || "Participant";
+    const event = params.get("event") || "Cyber Security Workshop";
+    const date = params.get("date") || "";
+    const id = params.get("id") || "N/A";
 
-const params=new URLSearchParams(window.location.search)
+    // Sayfadaki metinleri güncelle
+    document.getElementById("cid").innerText = "Certificate ID: " + id;
+    document.getElementById("participantName").innerText = name;
+    document.getElementById("eventName").innerText = event;
 
-document.getElementById("name").innerText=params.get("name")
+    // LinkedIn "Sertifika Ekle" URL'sini oluştur
+    // Bu link tıklandığında LinkedIn formu otomatik dolar
+    let linkedinURL = "https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME" +
+        "&name=" + encodeURIComponent(event) +
+        "&organizationName=" + encodeURIComponent("METU NCC Cyber") +
+        "&certId=" + encodeURIComponent(id) +
+        "&issueYear=" + new Date(date).getFullYear() +
+        "&issueMonth=" + (new Date(date).getMonth() + 1);
 
-document.getElementById("event").innerText=params.get("event")
-
-document.getElementById("date").innerText=params.get("date")
-
-document.getElementById("id").innerText=params.get("id")
-
+    document.getElementById("linkedin").href = linkedinURL;
 </script>
 
 </body>
