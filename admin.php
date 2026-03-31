@@ -1,3 +1,8 @@
+<?php
+// Demo admin sayfası
+// İleride authentication ve database buraya eklenecek
+?>
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -135,7 +140,6 @@ fabric.Image.fromURL(f.target.result,img=>{
 currentBg=img;
 
 img.selectable=false;
-
 img.evented=false;
 
 img.scaleToWidth(1600);
@@ -156,7 +160,6 @@ reader.readAsDataURL(e.target.files[0]);
 function clearLayers(){
 
 const objs=[...fCanvas.getObjects()];
-
 objs.forEach(o=>fCanvas.remove(o));
 
 }
@@ -199,9 +202,7 @@ name:'layerID'
 });
 
 fCanvas.add(nameLayer,eventLayer,idLayer);
-
 fCanvas.setActiveObject(nameLayer);
-
 fCanvas.requestRenderAll();
 
 }
@@ -228,7 +229,6 @@ const eventObj=fCanvas.getObjects().find(o=>o.name==="layerEvent");
 for(let i=0;i<names.length;i++){
 
 const name=names[i];
-
 const certID=`${prefix}-${202600+i}`;
 
 if(nameObj) nameObj.text=name.toUpperCase();
@@ -237,7 +237,7 @@ if(eventObj) eventObj.text=eventTag.toUpperCase();
 
 fCanvas.requestRenderAll();
 
-const qrData=await generateQR(window.location.origin+"/verify?id="+certID);
+const qrData=await generateQR(window.location.origin+"/index.php?id="+certID);
 
 await new Promise(resolve=>{
 
@@ -252,18 +252,12 @@ selectable:false
 });
 
 fCanvas.add(qr);
-
 fCanvas.requestRenderAll();
 
 const link=document.createElement("a");
 
 link.download=`${certID}_${name.replace(/\s/g,'_')}.png`;
-
-link.href=fCanvas.toDataURL({
-format:"png",
-quality:1
-});
-
+link.href=fCanvas.toDataURL({format:"png",quality:1});
 link.click();
 
 fCanvas.remove(qr);
@@ -308,7 +302,6 @@ resolve(canvas.toDataURL());
 function resize(){
 
 const wrapper=document.getElementById("canvas-wrapper");
-
 const scale=wrapper.clientWidth/1600;
 
 fCanvas.setDimensions({
@@ -325,7 +318,6 @@ fCanvas.renderAll();
 }
 
 window.addEventListener("resize",resize);
-
 setTimeout(resize,300);
 
 </script>
