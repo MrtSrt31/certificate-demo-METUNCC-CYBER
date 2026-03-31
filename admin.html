@@ -2,32 +2,90 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>METU Cyber | Admin Panel</title>
+    <title>METU Cyber | Admin Dashboard</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script> [cite: 954]
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 </head>
 <body>
-    <div class="card">
-        <h1>Sertifika Modülü</h1>
-        
-        <label>Sertifika Şablonu (PNG - 1600x900)</label> [cite: 884, 1021]
-        <input type="file" id="bgUpload" accept="image/png"> [cite: 1018]
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <input id="name" placeholder="Katılımcı Tam Adı"> [cite: 959, 1180]
-            <input id="event" placeholder="Etkinlik Adı"> [cite: 960]
-            <input id="date" type="text" placeholder="Tarih (Örn: 31 Mart 2026)"> [cite: 1194]
-            <input id="signer" placeholder="İmzalayan (Örn: Yönetim Kurulu)"> [cite: 1177]
+    <div class="card admin-card">
+        <div class="header">
+            <h1>Sertifika Oluşturma Paneli</h1>
+            <a href="index.html" class="back-link">← Geri Dön</a>
         </div>
 
-        <button onclick="generate()">Sertifikayı Bas ve Önizle</button>
-        
-        <canvas id="canvas" width="1600" height="900"></canvas> [cite: 823]
-        
-        <div id="downloadArea" style="display:none; margin-top: 1rem;">
-            <button style="background: #1f6feb;" onclick="download()">Sertifikayı İndir (PNG)</button>
+        <div class="admin-grid">
+            <div class="controls">
+                <label>1. Sertifika Şablonu Seç (PNG)</label>
+                <input type="file" id="bgUpload" accept="image/*">
+                
+                <label>2. Katılımcı Bilgileri</label>
+                <input id="userName" placeholder="Ad Soyad">
+                <input id="eventName" placeholder="Etkinlik Adı">
+                <input id="eventDate" placeholder="Tarih (Örn: 12 Mart 2026)">
+                <input id="signerName" placeholder="İmzalayan Kişi/Kurul">
+                
+                <button onclick="processImage()" class="btn-generate">Sertifikayı Bas</button>
+            </div>
+
+            <div class="preview-area">
+                <canvas id="mainCanvas" width="1600" height="900"></canvas>
+                <div id="actionButtons" style="display:none; margin-top: 15px;">
+                    <button onclick="downloadPNG()" class="btn-download">Sertifikayı İndir (PNG)</button>
+                </div>
+            </div>
         </div>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function processImage() {
+            const file = document.getElementById('bgUpload').files[0];
+            if(!file) return alert("Lütfen bir şablon görseli seçin.");
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, 1600, 900);
+
+                    // Yazı Ayarları
+                    ctx.fillStyle = "#1a1a1a"; 
+                    ctx.textAlign = "center";
+                    
+                    // İsim
+                    ctx.font = "bold 80px Arial";
+                    ctx.fillText(document.getElementById('userName').value || "İsim Soyisim", 800, 450);
+                    
+                    // Etkinlik
+                    ctx.font = "45px Arial";
+                    ctx.fillText(document.getElementById('eventName').value || "Etkinlik Adı", 800, 560);
+
+                    // Tarih ve İmza
+                    ctx.font = "30px Arial";
+                    ctx.fillText(document.getElementById('eventDate').value || "31.03.2026", 800, 650);
+                    ctx.fillText("İmza: " + (document.getElementById('signerName').value || "Yönetim Kurulu"), 800, 800);
+
+                    // QR Kod
+                    const certId = "MC-" + Math.floor(Math.random()*10000);
+                    QRCode.toCanvas(window.location.origin + "/index.html?id=" + certId, { width: 120 }, function (err, qrCanvas) {
+                        ctx.drawImage(qrCanvas, 1420, 720);
+                        document.getElementById('actionButtons').style.display = 'block';
+                    });
+                }
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+
+        function downloadPNG() {
+            const link = document.createElement('a');
+            link.download = 'Sertifika.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+    </script>
 </body>
 </html>
