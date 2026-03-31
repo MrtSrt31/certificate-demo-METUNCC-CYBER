@@ -1,80 +1,61 @@
-/* style.css - METU NCC Cyber Dark Theme */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap');
+
+:root {
+    --bg-dark: #000000;
+    --card-bg: #161b22;
+    --cyber-green: #10b981;
+    --border-color: #30363d;
+}
 
 body {
-    background-color: #000;
-    background-image: radial-gradient(#1f2937 1px, transparent 1px);
-    background-size: 25px 25px; /* Arkadaki o kareli ızgara yapısı */
+    background-color: var(--bg-dark);
+    background-image: radial-gradient(#1f2937 0.5px, transparent 0.5px);
+    background-size: 30px 30px; /* Sitedeki ızgara yapısı */
     color: #e6edf3;
     font-family: 'Inter', sans-serif;
     margin: 0;
-    padding: 40px;
+    padding: 20px;
 }
 
-.dashboard-card {
-    background: rgba(13, 17, 23, 0.9);
-    border: 1px solid #30363d;
-    border-radius: 8px;
-    padding: 30px;
-    max-width: 1100px;
+.dashboard-container {
+    max-width: 1200px;
     margin: auto;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
 }
 
-.cyber-header {
-    border-bottom: 2px solid #1f2937;
-    padding-bottom: 20px;
-    margin-bottom: 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.event-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 25px;
+    transition: 0.3s;
 }
 
-.status-badge {
-    background: #0d1117;
-    border: 1px solid #238636;
-    color: #3fb950;
-    padding: 5px 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+.cyber-button {
+    background: var(--cyber-green);
+    color: black;
+    font-weight: 800;
     text-transform: uppercase;
-}
-
-.input-group {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-bottom: 20px;
+    letter-spacing: 1px;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    width: 100%;
 }
 
 input {
     background: #0d1117;
-    border: 1px solid #30363d;
-    color: #fff;
+    border: 1px solid var(--border-color);
+    color: white;
     padding: 12px;
-    border-radius: 4px;
-    font-size: 14px;
+    border-radius: 6px;
+    width: 100%;
+    margin-bottom: 15px;
 }
-
-input:focus { border-color: #2ea043; outline: none; }
-
-.btn-primary {
-    background: #238636;
-    color: #fff;
-    border: none;
-    padding: 15px;
-    font-weight: bold;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: 0.3s;
-}
-
-.btn-primary:hover { background: #2ea043; }
 
 canvas {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
     width: 100%;
-    margin-top: 30px;
-    border: 1px solid #30363d;
-    background: #000;
+    background: white;
 }
