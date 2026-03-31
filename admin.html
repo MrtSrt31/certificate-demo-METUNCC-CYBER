@@ -1,48 +1,163 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>METU NCC Cybersecurity Society | Admin</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>METU NCC Cyber | Komuta Merkezi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root { --cyber-green: #10b981; --panel-bg: #0d1117; --card-bg: #161b22; --border: #30363d; }
+        body { 
+            background: #000; color: #e6edf3; font-family: 'Inter', sans-serif;
+            background-image: radial-gradient(#1f2937 0.8px, transparent 0.8px);
+            background-size: 30px 30px; /* Sitedeki meşhur kareli arka plan */
+        }
+        .sidebar-item { border-left: 3px solid transparent; transition: 0.2s; }
+        .sidebar-item.active { border-left-color: var(--cyber-green); background: rgba(16, 185, 129, 0.1); color: var(--cyber-green); }
+        .cyber-input { background: #0d1117; border: 1px solid var(--border); color: white; border-radius: 4px; }
+        .cyber-input:focus { border-color: var(--cyber-green); outline: none; }
+        canvas { border: 1px solid var(--border); background: #fff; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+    </style>
 </head>
-<body>
-    <div id="loginOverlay" class="dashboard-container mt-20 text-center">
-        <div class="event-card max-w-md mx-auto">
-            <h2 class="text-emerald-500 font-bold mb-4 uppercase">Admin Access Required</h2>
-            <input type="password" id="adminPass" placeholder="Enter Admin Secret">
-            <button onclick="checkAuth()" class="cyber-button">Login</button>
+<body class="p-0 m-0">
+    <div class="flex min-h-screen">
+        <div class="w-64 bg-[#0d1117]/90 border-r border-[#30363d] p-6 space-y-8 hidden md:block">
+            <div class="flex items-center gap-2 mb-10">
+                <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-black font-black text-xs">MC</div>
+                <span class="font-bold text-sm tracking-tighter uppercase">METU NCC CYBER</span>
+            </div>
+            
+            <nav class="space-y-1">
+                <p class="text-[10px] font-bold text-gray-500 uppercase mb-4 tracking-widest">YÖNETİM</p>
+                <div class="sidebar-item p-3 text-sm cursor-pointer opacity-50 hover:opacity-100">Genel Bakış</div>
+                <div class="sidebar-item p-3 text-sm cursor-pointer opacity-50 hover:opacity-100">Site Ayarları</div>
+                <div class="sidebar-item active p-3 text-sm cursor-pointer">Sertifika Üret</div>
+                <div class="sidebar-item p-3 text-sm cursor-pointer opacity-50 hover:opacity-100">Etkinlikler</div>
+                <div class="sidebar-item p-3 text-sm cursor-pointer opacity-50 hover:opacity-100">Sistem Logları</div>
+            </nav>
+        </div>
+
+        <div class="flex-1 p-8">
+            <div class="flex justify-between items-center mb-10 border-b border-[#30363d] pb-6">
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-tighter uppercase">KOMUTA MERKEZİ</h1>
+                    <p class="text-xs text-gray-500 mt-1 font-mono">Sistem Saati: 31.03.2026 15:54 (Europe/Bucharest)</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="bg-red-900/20 text-red-500 border border-red-900/50 px-3 py-1 rounded text-[10px] font-bold">MÜDAHALE ET</div>
+                    <div class="bg-[#161b22] border border-[#30363d] px-4 py-2 rounded text-xs font-bold">Mert Sert v</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-[#161b22] border border-[#30363d] p-6 rounded-lg">
+                        <h3 class="text-xs font-bold text-gray-500 uppercase mb-6 tracking-widest">Sertifika Verileri</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-[10px] text-gray-500 uppercase font-bold">Katılımcı Adı</label>
+                                <input id="name" type="text" class="cyber-input w-full p-3 mt-1 text-sm" placeholder="MERT SERT">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-500 uppercase font-bold">Etkinlik Adı</label>
+                                <input id="event" type="text" class="cyber-input w-full p-3 mt-1 text-sm" placeholder="SİBER GÜVENLİĞE GİRİŞ -1">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-500 uppercase font-bold">Tarih</label>
+                                <input id="date" type="text" class="cyber-input w-full p-3 mt-1 text-sm" placeholder="31 MART 2026">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-500 uppercase font-bold">İmzalar (Virgül ile)</label>
+                                <input id="signs" type="text" class="cyber-input w-full p-3 mt-1 text-sm" placeholder="Mert Sert, Yönetim Kurulu">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-500 uppercase font-bold">Şablon (PNG)</label>
+                                <input type="file" id="bgLoad" class="text-[10px] block w-full text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700">
+                            </div>
+                        </div>
+
+                        <button onclick="generate()" class="w-full bg-[#10b981] hover:bg-[#0da371] text-black font-black py-4 rounded mt-8 tracking-widest text-xs transition-all uppercase">Sertifikayı Mühürle</button>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2">
+                    <div class="bg-[#161b22] border border-[#30363d] p-6 rounded-lg text-center">
+                        <h3 class="text-xs font-bold text-gray-500 uppercase mb-6 tracking-widest">Canlı Mühür Önizleme</h3>
+                        <canvas id="cvs" width="1600" height="900" class="w-full rounded mb-6"></canvas>
+                        <button id="dlBtn" onclick="save()" class="hidden w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded text-xs tracking-widest uppercase transition-all">Sertifikayı PNG İndir</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="adminPanel" class="dashboard-container" style="display:none;">
-        <div class="flex justify-between items-center mb-10 border-b border-gray-800 pb-4">
-            <h1 class="font-black text-xl tracking-tighter">METU NCC <span style="color:var(--cyber-green)">CYBERSECURITY SOCIETY</span></h1>
-            <span class="text-xs font-mono opacity-50">v2.1_SECURE_BUILD</span>
-        </div>
+    <script>
+        const canvas = document.getElementById('cvs');
+        const ctx = canvas.getContext('2d');
 
-        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
-            <div class="event-card">
-                <label class="text-xs font-bold opacity-50 uppercase">1. Template (PNG)</label>
-                <input type="file" id="bgInput">
-                
-                <label class="text-xs font-bold opacity-50 uppercase">2. Participant Info</label>
-                <input id="userName" placeholder="Full Name">
-                <input id="eventName" placeholder="Event Name">
-                <input id="eventDate" placeholder="Date (e.g., 31 March 2026)">
-                <input id="signers" placeholder="Signer Names (comma separated)">
-                
-                <button onclick="renderCert()" class="cyber-button">Generate & Seal</button>
-            </div>
+        async function generate() {
+            const file = document.getElementById('bgLoad').files[0];
+            if(!file) return alert("Hata: Şablon seçilmedi!");
 
-            <div class="event-card text-center">
-                <h3 class="text-xs opacity-50 mb-4 uppercase">Live Preview</h3>
-                <canvas id="certCanvas" width="1600" height="900"></canvas>
-                <button id="dlBtn" onclick="saveImage()" class="cyber-button mt-4" style="display:none; background:#1f6feb; color:white;">Download Certificate</button>
-            </div>
-        </div>
-    </div>
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    ctx.clearRect(0, 0, 1600, 900);
+                    ctx.drawImage(img, 0, 0, 1600, 900);
+                    ctx.textAlign = "center";
+                    
+                    // İsim Soyisim
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "800 85px 'Inter'";
+                    ctx.fillText(document.getElementById('name').value.toUpperCase(), 800, 430);
+                    
+                    // Etkinlik
+                    ctx.fillStyle = "#10b981";
+                    ctx.font = "700 40px 'Inter'";
+                    ctx.fillText(document.getElementById('event').value.toUpperCase(), 800, 540);
+                    
+                    // Tarih
+                    ctx.fillStyle = "rgba(255,255,255,0.6)";
+                    ctx.font = "30px 'JetBrains Mono'";
+                    ctx.fillText(document.getElementById('date').value, 800, 610);
 
-    <script src="script.js"></script>
+                    // İmzalar
+                    const signs = document.getElementById('signs').value.split(',');
+                    ctx.fillStyle = "white";
+                    ctx.font = "600 25px 'Inter'";
+                    signs.forEach((s, i) => {
+                        const x = (1600 / (signs.length + 1)) * (i + 1);
+                        ctx.fillText(s.trim(), x, 780);
+                        ctx.fillRect(x - 80, 750, 160, 1);
+                    });
+
+                    // ID ve QR (Mühürleme)
+                    const id = "MNCS-" + Math.floor(Math.random()*90000 + 10000);
+                    const verifyURL = window.location.origin + "/index.html?id=" + id;
+                    QRCode.toCanvas(verifyURL, { width: 140, margin: 2, color: { dark: '#ffffff', light: '#00000000' } }, (err, qr) => {
+                        ctx.drawImage(qr, 1420, 720);
+                        ctx.fillStyle = "rgba(255,255,255,0.2)";
+                        ctx.font = "14px 'JetBrains Mono'";
+                        ctx.textAlign = "right";
+                        ctx.fillText("CERT_ID: " + id, 1560, 880);
+                        document.getElementById('dlBtn').classList.remove('hidden');
+                    });
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function save() {
+            const link = document.createElement('a');
+            link.download = `MNCS_Cert_${Date.now()}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+    </script>
 </body>
 </html>
