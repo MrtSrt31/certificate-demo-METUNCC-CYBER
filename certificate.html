@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Certificate</title>
+
+<style>
+
+body{
+background:#0d1117;
+color:white;
+font-family:Arial;
+text-align:center;
+padding:50px;
+}
+
+.cert{
+background:#161b22;
+padding:40px;
+border-radius:10px;
+max-width:700px;
+margin:auto;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="cert">
+
+<h1>Certificate of Completion</h1>
+
+<h2 id="name"></h2>
+
+<p>has successfully completed</p>
+
+<h3 id="event"></h3>
+
+<p>Date:</p>
+
+<p id="date"></p>
+
+<p>Certificate ID:</p>
+
+<p id="id"></p>
+
+</div>
+
+<script>
+
+const params=new URLSearchParams(window.location.search)
+
+document.getElementById("name").innerText=params.get("name")
+
+document.getElementById("event").innerText=params.get("event")
+
+document.getElementById("date").innerText=params.get("date")
+
+document.getElementById("id").innerText=params.get("id")
+
+</script>
+
+</body>
+</html>
