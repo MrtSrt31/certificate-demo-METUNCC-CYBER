@@ -1,69 +1,119 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-<title>METU Cyber Certificate Demo</title>
+    <meta charset="UTF-8">
+    <title>METU Cyber Certificate Demo</title>
+    <style>
+        body {
+            background: #0d1117;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 40px;
+        }
 
-<style>
-body{
-background:#0d1117;
-color:white;
-font-family:Arial;
-text-align:center;
-padding:40px;
-}
+        .card {
+            background: #161b22;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
 
-.card{
-background:#161b22;
-padding:30px;
-border-radius:10px;
-max-width:600px;
-margin:auto;
-}
+        input {
+            padding: 10px;
+            width: 80%;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #30363d;
+            background: #0d1117;
+            color: white;
+        }
 
-button{
-padding:10px 20px;
-font-size:16px;
-}
-</style>
+        .button-group {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
 
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            border: none;
+            transition: 0.3s;
+        }
+
+        .btn-create {
+            background-color: #238636;
+            color: white;
+        }
+
+        .btn-create:hover {
+            background-color: #2ea043;
+        }
+
+        .btn-verify {
+            background-color: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+        }
+
+        .btn-verify:hover {
+            background-color: #30363d;
+        }
+
+        a {
+            text-decoration: none;
+        }
+    </style>
 </head>
-
 <body>
 
 <div class="card">
+    <h1>METU Cyber Certificate Demo</h1>
+    <p>Create or Verify a demo certificate</p>
 
-<h1>METU Cyber Certificate Demo</h1>
+    <input id="name" placeholder="Participant Name"><br>
+    <input id="event" placeholder="Event Name"><br>
+    <input id="date" type="date"><br>
 
-<p>Create a demo certificate</p>
+    <div class="button-group">
+        <button class="btn-create" onclick="create()">Create Certificate</button>
 
-<input id="name" placeholder="Participant Name"><br><br>
+        <a href="certificate.html">
+            <button type="button" class="btn-verify">Verify Certificate</button>
+        </a>
+    </div>
 
-<input id="event" placeholder="Event Name"><br><br>
-
-<input id="date" type="date"><br><br>
-
-<button onclick="create()">Create Certificate</button>
-
+    <div style="margin-top: 20px;">
+        <a href="admin.html" style="color: #58a6ff; font-size: 14px;">Go to Admin Panel</a>
+    </div>
 </div>
 
 <script>
+    function create() {
+        let name = document.getElementById("name").value;
+        let event = document.getElementById("event").value;
+        let date = document.getElementById("date").value;
 
-function create(){
+        if(!name || !event || !date) {
+            alert("Please fill all fields!");
+            return;
+        }
 
-let name=document.getElementById("name").value
-let event=document.getElementById("event").value
-let date=document.getElementById("date").value
+        let id = "MC-" + Math.floor(Math.random() * 100000);
 
-let id="MC-"+Math.floor(Math.random()*100000)
-
-window.location.href=
-"certificate.html?name="+name+
-"&event="+event+
-"&date="+date+
-"&id="+id
-
-}
-
+        // Bilgileri URL parametresi olarak gönderir
+        window.location.href = 
+            "certificate.html?name=" + encodeURIComponent(name) + 
+            "&event=" + encodeURIComponent(event) + 
+            "&date=" + date + 
+            "&id=" + id;
+    }
 </script>
 
 </body>
