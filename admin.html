@@ -63,45 +63,62 @@
             width: 1600,
             height: 900,
             backgroundColor: '#161b22',
-            preserveObjectStacking: true // Katmanların kaymasını önler
+            preserveObjectStacking: true
         });
 
-        // 1. Şablonu Temiz ve Orantılı Yükle [cite: 1413]
+        let currentBgImage = null; // Arka plan resmini hafızada tutmak için
+
+        // 1. Şablon Yükleme (DÜZELTİLDİ: Resmi değişkene atar)
         document.getElementById('bgInput').onchange = (e) => {
             const reader = new FileReader();
             reader.onload = (f) => {
                 fabric.Image.fromURL(f.target.result, (img) => {
-                    fCanvas.setBackgroundImage(img, fCanvas.renderAll.bind(fCanvas), {
-                        scaleX: 1600 / img.width,
-                        scaleY: 900 / img.height
-                    });
+                    currentBgImage = img;
+                    updateBackground();
                 });
             };
             reader.readAsDataURL(e.target.files[0]);
         };
 
-        // 2. Akıllı Yerleşim (Üst üste binmeyi engelleyen kanal yapısı) 
+        function updateBackground() {
+            if (currentBgImage) {
+                fCanvas.setBackgroundImage(currentBgImage, fCanvas.renderAll.bind(fCanvas), {
+                    scaleX: 1600 / currentBgImage.width,
+                    scaleY: 900 / currentBgImage.height
+                });
+            }
+        }
+
+        // 2. Akıllı Yerleşim (DÜZELTİLDİ: Resmi silmez, sadece yazıları yeniler)
         function setupLayout() {
-            fCanvas.clear();
-            // İsim Kanalı (Merkez) [cite: 1243]
+            // Mevcut yazıları temizle ama arka planı elleme
+            const objects = fCanvas.getObjects();
+            while(objects.length > 0) {
+                fCanvas.remove(objects[0]);
+            }
+
             const nameLayer = new fabric.IText("KATILIMCI ADI", {
                 left: 800, top: 430, fontSize: 85, fontFamily: 'Inter', fontWeight: '800', fill: '#ffffff', originX: 'center', name: 'layerName'
             });
-            // Etkinlik Kanalı [cite: 1244]
+
             const eventLayer = new fabric.IText(document.getElementById('eventTag').value.toUpperCase(), {
                 left: 800, top: 540, fontSize: 40, fontFamily: 'Inter', fontWeight: '700', fill: '#10b981', originX: 'center', name: 'layerEvent'
             });
-            // ID ve QR Mühür Kanalı (Sağ Alt) [cite: 1250, 1424]
+
             const idLayer = new fabric.IText("CERT_ID: MNCS-0000", {
                 left: 1560, top: 875, fontSize: 14, fontFamily: 'JetBrains Mono', fill: '#ffffff', opacity: 0.3, originX: 'right', name: 'layerID'
             });
 
             fCanvas.add(nameLayer, eventLayer, idLayer);
+            
+            // Arka planı tekrar kontrol et ve render et
+            updateBackground();
+            
             fCanvas.setActiveObject(nameLayer);
-            alert("Tasarım Kanalları Oluşturuldu. Yerlerini Sabitlemek İçin Sürükleyebilirsin.");
+            fCanvas.renderAll();
         }
 
-        // 3. Seri Üretim Motoru (Bulk Production) 
+        // 3. Seri Üretim Motoru
         async function startBulkProduction() {
             const names = document.getElementById('bulkNames').value.split('\n').filter(n => n.trim() !== "");
             if(names.length === 0) return alert("İsim Listesi Boş!");
@@ -109,36 +126,34 @@
             const prefix = document.getElementById('prefix').value;
             const nameObj = fCanvas.getObjects().find(o => o.name === 'layerName');
             const idObj = fCanvas.getObjects().find(o => o.name === 'layerID');
-            const eventObj = fCanvas.getObjects().find(o => o.layerEvent === 'layerEvent');
 
             for (let i = 0; i < names.length; i++) {
                 const name = names[i].trim();
                 const certID = prefix + "-" + (202600 + i);
                 
-                // Verileri Mühürle [cite: 1406]
                 if(nameObj) nameObj.set('text', name.toUpperCase());
                 if(idObj) idObj.set('text', "CERT_ID: " + certID);
                 
-                // QR Kod Üret ve Gizli Ekle [cite: 1405, 1444]
                 const qrUrl = window.location.origin + "/index.html?id=" + certID;
                 const qrBlob = await generateQRBlob(qrUrl);
                 
-                fabric.Image.fromURL(qrBlob, (qrImg) => {
-                    qrImg.set({ left: 1430, top: 730, scaleX: 0.8, scaleY: 0.8, name: 'tempQR' });
-                    fCanvas.add(qrImg);
-                    fCanvas.renderAll();
+                await new Promise(resolve => {
+                    fabric.Image.fromURL(qrBlob, (qrImg) => {
+                        qrImg.set({ left: 1430, top: 730, scaleX: 0.8, scaleY: 0.8, name: 'tempQR' });
+                        fCanvas.add(qrImg);
+                        fCanvas.renderAll();
 
-                    // Görseli İndir [cite: 1419]
-                    const link = document.createElement('a');
-                    link.download = `${certID}_${name.replace(/\s/g, '_')}.png`;
-                    link.href = fCanvas.toDataURL({ format: 'png', quality: 1 });
-                    link.click();
+                        const link = document.createElement('a');
+                        link.download = `${certID}_${name.replace(/\s/g, '_')}.png`;
+                        link.href = fCanvas.toDataURL({ format: 'png', quality: 1 });
+                        link.click();
 
-                    // QR'ı bir sonraki için temizle
-                    fCanvas.remove(qrImg);
+                        fCanvas.remove(qrImg);
+                        resolve();
+                    });
                 });
                 
-                await new Promise(r => setTimeout(r, 400)); // Tarayıcıyı korumak için
+                await new Promise(r => setTimeout(r, 400));
             }
             alert(names.length + " Sertifika Hazırlandı!");
         }
@@ -152,9 +167,10 @@
             });
         }
 
-        // Responsive Canvas
         function resize() {
-            const scale = document.getElementById('canvas-wrapper').clientWidth / 1600;
+            const wrapper = document.getElementById('canvas-wrapper');
+            if(!wrapper) return;
+            const scale = wrapper.clientWidth / 1600;
             fCanvas.setZoom(scale);
             fCanvas.setWidth(1600 * scale);
             fCanvas.setHeight(900 * scale);
