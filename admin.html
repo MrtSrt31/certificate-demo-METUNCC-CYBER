@@ -1,22 +1,31 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+    <meta charset="UTF-8">
+    <title>METU Cyber | Admin Panel</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script> [cite: 954]
 </head>
 <body>
     <div class="card">
-        <h1>Sertifika Üretim Paneli (Admin)</h1>
-        <input type="file" id="bgUpload" accept="image/*"> <input id="name" placeholder="Katılımcı Adı">
-        <input id="event" placeholder="Etkinlik Adı">
-        <input id="date" type="date">
-        <button onclick="generate()">Sertifikayı Oluştur</button>
-        <br>
-        <canvas id="canvas" width="1600" height="900" style="display:none;"></canvas>
-        <div id="result">
-            <img id="finalImage" style="max-width:100%; border:1px solid #00ff00;">
-            <br>
-            <button onclick="download()">Görseli İndir (PNG)</button>
+        <h1>Sertifika Modülü</h1>
+        
+        <label>Sertifika Şablonu (PNG - 1600x900)</label> [cite: 884, 1021]
+        <input type="file" id="bgUpload" accept="image/png"> [cite: 1018]
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <input id="name" placeholder="Katılımcı Tam Adı"> [cite: 959, 1180]
+            <input id="event" placeholder="Etkinlik Adı"> [cite: 960]
+            <input id="date" type="text" placeholder="Tarih (Örn: 31 Mart 2026)"> [cite: 1194]
+            <input id="signer" placeholder="İmzalayan (Örn: Yönetim Kurulu)"> [cite: 1177]
+        </div>
+
+        <button onclick="generate()">Sertifikayı Bas ve Önizle</button>
+        
+        <canvas id="canvas" width="1600" height="900"></canvas> [cite: 823]
+        
+        <div id="downloadArea" style="display:none; margin-top: 1rem;">
+            <button style="background: #1f6feb;" onclick="download()">Sertifikayı İndir (PNG)</button>
         </div>
     </div>
     <script src="script.js"></script>
