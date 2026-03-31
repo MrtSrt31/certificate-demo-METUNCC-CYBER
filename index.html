@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>METU Cyber Certificate Demo</title>
+
+<style>
+body{
+background:#0d1117;
+color:white;
+font-family:Arial;
+text-align:center;
+padding:40px;
+}
+
+.card{
+background:#161b22;
+padding:30px;
+border-radius:10px;
+max-width:600px;
+margin:auto;
+}
+
+button{
+padding:10px 20px;
+font-size:16px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<h1>METU Cyber Certificate Demo</h1>
+
+<p>Create a demo certificate</p>
+
+<input id="name" placeholder="Participant Name"><br><br>
+
+<input id="event" placeholder="Event Name"><br><br>
+
+<input id="date" type="date"><br><br>
+
+<button onclick="create()">Create Certificate</button>
+
+</div>
+
+<script>
+
+function create(){
+
+let name=document.getElementById("name").value
+let event=document.getElementById("event").value
+let date=document.getElementById("date").value
+
+let id="MC-"+Math.floor(Math.random()*100000)
+
+window.location.href=
+"certificate.html?name="+name+
+"&event="+event+
+"&date="+date+
+"&id="+id
+
+}
+
+</script>
+
+</body>
+</html>
