@@ -1,33 +1,56 @@
-body{
-background:#0d1117;
-color:white;
-font-family:Arial;
-text-align:center;
-padding:40px;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+body {
+    background: #0d1117; /* GitHub Dark */ [cite: 240, 576]
+    color: #e6edf3;
+    font-family: 'Inter', sans-serif; [cite: 242]
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
 }
 
-.card{
-background:#161b22;
-padding:40px;
-border-radius:10px;
-max-width:700px;
-margin:auto;
+.card {
+    background: #161b22; [cite: 248, 583]
+    border: 1px solid #30363d;
+    border-radius: 12px; [cite: 249, 585, 776]
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 900px; [cite: 245, 586, 777, 999]
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-input{
-padding:10px;
-width:80%;
-margin:10px;
+h1 { color: #58a6ff; font-size: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid #30363d; padding-bottom: 1rem; }
+
+input, select {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: white;
+    padding: 12px; [cite: 780, 1003]
+    margin-bottom: 1rem;
+    border-radius: 6px;
+    width: 100%; [cite: 781, 1004]
+    box-sizing: border-box;
 }
 
-button{
-padding:12px 20px;
-font-size:16px;
-cursor:pointer;
-margin:10px;
+button {
+    background: #238636; /* Success Green */
+    color: white;
+    border: none;
+    padding: 12px 24px; [cite: 785, 1008]
+    border-radius: 6px;
+    cursor: pointer; [cite: 787, 1011]
+    font-weight: bold;
+    width: 100%;
+    transition: 0.2s;
 }
 
-canvas{
-margin-top:20px;
-border:2px solid #333;
+button:hover { background: #2ea043; }
+
+canvas {
+    border-radius: 8px;
+    border: 1px solid #30363d; [cite: 792, 1015]
+    margin-top: 1.5rem;
+    width: 100%;
 }
